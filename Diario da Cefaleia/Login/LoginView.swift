@@ -2,11 +2,11 @@
 //  LoginView.swift
 //  Diario da Cefaleia
 //
-//  Espelha Login.jsx: Apple (nativo), Google (OAuth via ASWebAuthenticationSession) e
-//  e-mail/senha, com o mesmo toggle entrar<->cadastrar.
+//  Espelha Login.jsx: Google (OAuth) e e-mail/senha, com o mesmo toggle entrar<->cadastrar.
 //
 
-import AuthenticationServices
+import Auth
+import Supabase
 import SwiftUI
 
 private let redirectURL = URL(string: "com.digitalbsb.Diario-da-Cefaleia://login-callback")!
@@ -32,15 +32,6 @@ struct LoginView: View {
             }
 
             VStack(spacing: 10) {
-                SignInWithAppleButton(.signIn) { request in
-                    request.requestedScopes = [.email, .fullName]
-                } onCompletion: { result in
-                    Task { await entrarComApple(result) }
-                }
-                .signInWithAppleButtonStyle(.white)
-                .frame(height: 52)
-                .clipShape(Capsule())
-
                 // "G" oficial fica pra quando houver asset — SF Symbol por ora.
                 Button {
                     Task { await entrarComGoogle() }
@@ -54,8 +45,7 @@ struct LoginView: View {
                     .frame(height: 52)
                 }
                 .foregroundStyle(.white)
-                .background(Color.white.opacity(0.12), in: Capsule())
-                .overlay(Capsule().strokeBorder(Color.white.opacity(0.18)))
+                .buttonStyle(.glass)
 
                 HStack(spacing: 10) {
                     Rectangle().fill(Color.white.opacity(0.14)).frame(height: 0.5)
@@ -102,19 +92,6 @@ struct LoginView: View {
         }
         .padding(32)
         .frame(maxWidth: 380)
-    }
-
-    private func entrarComApple(_ result: Result<ASAuthorization, Error>) async {
-        mensagem = nil
-        do {
-            guard case .success(let auth) = result,
-                let credential = auth.credential as? ASAuthorizationAppleIDCredential,
-                let idToken = credential.identityToken.flatMap({ String(data: $0, encoding: .utf8) })
-            else { return }
-            try await supabase.auth.signInWithIdToken(credentials: .init(provider: .apple, idToken: idToken))
-        } catch {
-            mensagem = (true, error.localizedDescription)
-        }
     }
 
     private func entrarComGoogle() async {

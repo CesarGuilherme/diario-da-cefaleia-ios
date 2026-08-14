@@ -256,4 +256,43 @@ struct ReportTests {
         #expect(idade("2014-03-22", hoje: dataLocal(ano: 2026, mes: 2, dia: 10)) == 11)
         #expect(idade("2014-03-22", hoje: dataLocal(ano: 2026, mes: 3, dia: 22)) == 12)
     }
+
+    @Test("porDia: dois dias distintos")
+    func porDiaDoisDias() {
+        var a = SEEDS[0]
+        a.inicio = dataLocal(ano: 2025, mes: 8, dia: 1, hora: 10)
+        var b = SEEDS[1]
+        b.inicio = dataLocal(ano: 2025, mes: 8, dia: 5, hora: 14)
+        let dias = porDia([a, b], hoje: dataLocal(ano: 2025, mes: 8, dia: 5))
+        #expect(dias.first?.n == 1)
+        #expect(dias.last?.n == 1)
+        #expect(dias.map(\.n).reduce(0, +) == 2)
+    }
+
+    @Test("porDia: duas crises no mesmo dia somam")
+    func porDiaDuasNoMesmoDia() {
+        var a = SEEDS[0]
+        a.inicio = dataLocal(ano: 2025, mes: 8, dia: 5, hora: 10)
+        var b = SEEDS[1]
+        b.inicio = dataLocal(ano: 2025, mes: 8, dia: 5, hora: 22)
+        let dias = porDia([a, b], hoje: dataLocal(ano: 2025, mes: 8, dia: 5))
+        #expect(dias.count == 1)
+        #expect(dias[0].n == 2)
+    }
+
+    @Test("porDia: dia sem crise no meio entra com zero")
+    func porDiaBuracoComZero() {
+        var a = SEEDS[0]
+        a.inicio = dataLocal(ano: 2025, mes: 8, dia: 1, hora: 10)
+        var b = SEEDS[1]
+        b.inicio = dataLocal(ano: 2025, mes: 8, dia: 3, hora: 10)
+        let dias = porDia([a, b], hoje: dataLocal(ano: 2025, mes: 8, dia: 3))
+        #expect(dias.count == 3)
+        #expect(dias.map(\.n) == [1, 0, 1])
+    }
+
+    @Test("porDia: lista vazia")
+    func porDiaVazio() {
+        #expect(porDia([]).isEmpty)
+    }
 }

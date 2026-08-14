@@ -77,7 +77,7 @@ struct MesInfo: Equatable, Identifiable {
 /// ponytail: conta o dia do `inicio`; crise que atravessa a meia-noite conta 1 dia só.
 func porMes(_ crises: [Crise], hoje: Date = Date()) -> [MesInfo] {
     guard !crises.isEmpty else { return [] }
-    let cal = Calendar(identifier: .gregorian)
+    let cal = calendarioBR
 
     var dias: [String: Set<Int>] = [:]  // "ano-mês" -> dias do mês com crise
     var primeira: Date?
@@ -107,6 +107,35 @@ func porMes(_ crises: [Crise], hoje: Date = Date()) -> [MesInfo] {
         cur = cal.date(byAdding: .month, value: 1, to: cur)!
     }
     return meses
+}
+
+struct DiaInfo: Equatable, Identifiable {
+    var dia: Date
+    var n: Int
+    var id: Date { dia }
+}
+
+/// Uma entrada por dia, da primeira crise até hoje. Dias sem crise entram com n=0
+/// para a linha mostrar o chão. Duas crises no mesmo dia somam (ao contrário de porMes).
+func porDia(_ crises: [Crise], hoje: Date = Date()) -> [DiaInfo] {
+    guard !crises.isEmpty else { return [] }
+    let cal = calendarioBR
+    var conta: [Date: Int] = [:]
+    var primeira: Date?
+    for c in crises {
+        let dia = cal.startOfDay(for: c.inicio)
+        conta[dia, default: 0] += 1
+        if primeira == nil || dia < primeira! { primeira = dia }
+    }
+    let inicio = primeira!
+    let fim = cal.startOfDay(for: hoje)
+    var out: [DiaInfo] = []
+    var cur = inicio
+    while cur <= fim {
+        out.append(DiaInfo(dia: cur, n: conta[cur] ?? 0))
+        cur = cal.date(byAdding: .day, value: 1, to: cur)!
+    }
+    return out
 }
 
 struct GatilhoAnalise: Equatable, Identifiable {

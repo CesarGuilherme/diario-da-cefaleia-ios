@@ -23,7 +23,7 @@ struct CamposCriseView: View {
     private var intensidadeSecao: some View {
         VStack(spacing: 14) {
             SectionLabel(texto: "Intensidade")
-            Segmented(opcoes: INTENSIDADES, valor: form.intensidade, cores: INT.mapValues(\.dot)) {
+            Segmented(opcoes: INTENSIDADES, valor: form.intensidade, cores: INT_DOTS) {
                 form.intensidade = $0
             }
 
@@ -126,18 +126,10 @@ struct CamposCriseView: View {
     }
 
     private func alternarSintoma(_ s: String) {
-        if let idx = form.sintomas.firstIndex(of: s) {
-            form.sintomas.remove(at: idx)
-        } else {
-            form.sintomas.append(s)
-        }
+        form.sintomas.alternar(s)
     }
 
     private func alternarGatilho(_ g: String) {
-        if let idx = form.gatilhos.firstIndex(of: g) {
-            form.gatilhos.remove(at: idx)
-        } else {
-            form.gatilhos.append(g)
-        }
+        form.gatilhos.alternar(g)
     }
 }

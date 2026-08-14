@@ -26,7 +26,8 @@ let supabase = SupabaseClient(
 
 // MARK: - Modelos
 
-struct Paciente: Codable, Identifiable, Equatable, Hashable {
+// Target isola no MainActor; Codable precisa ser nonisolated — o decode do PostgREST é @concurrent.
+nonisolated struct Paciente: Codable, Identifiable, Equatable, Hashable {
     var id: UUID
     var nome: String
     var dataNascimento: String?  // 'YYYY-MM-DD', opcional — só alimenta a idade no relatório
@@ -39,7 +40,7 @@ struct Paciente: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-struct Crise: Codable, Identifiable, Equatable {
+nonisolated struct Crise: Codable, Identifiable, Equatable {
     var id: UUID
     var pacienteId: UUID
     var inicio: Date
@@ -61,6 +62,29 @@ struct Crise: Codable, Identifiable, Equatable {
         case inicio, fim, intensidade, localizacao, carater, sintomas
         case sonoHoras = "sono_horas"
         case gatilhos, detalhes, medicacao, alivio
+    }
+
+    // Init memberwise explícito: como `init(from:)` abaixo é customizado, o Swift não
+    // sintetiza mais o memberwise automático. Usado em fixtures de teste.
+    init(
+        id: UUID, pacienteId: UUID, inicio: Date, fim: Date?,
+        intensidade: String, localizacao: String, carater: String,
+        sintomas: [String], sonoHoras: Double, gatilhos: [String],
+        detalhes: [String: [String]], medicacao: String, alivio: String?
+    ) {
+        self.id = id
+        self.pacienteId = pacienteId
+        self.inicio = inicio
+        self.fim = fim
+        self.intensidade = intensidade
+        self.localizacao = localizacao
+        self.carater = carater
+        self.sintomas = sintomas
+        self.sonoHoras = sonoHoras
+        self.gatilhos = gatilhos
+        self.detalhes = detalhes
+        self.medicacao = medicacao
+        self.alivio = alivio
     }
 
     init(from decoder: Decoder) throws {
@@ -95,7 +119,7 @@ struct Crise: Codable, Identifiable, Equatable {
 
 // MARK: - Escrita
 
-struct PacienteInput: Encodable {
+nonisolated struct PacienteInput: Encodable {
     var nome: String
     var dataNascimento: String?
 
@@ -113,7 +137,7 @@ struct PacienteInput: Encodable {
     }
 }
 
-struct NovaCriseInput: Encodable {
+nonisolated struct NovaCriseInput: Encodable {
     var pacienteId: UUID
     var inicio: Date
     var intensidade: String
@@ -137,7 +161,7 @@ struct NovaCriseInput: Encodable {
 /// `atualizar(id, intensidade: v)` no meio de uma crise sem tocar no resto da linha.
 /// ponytail: encodeIfPresent nunca grava NULL; ok porque a UI só deixa `alivio` ir de
 /// nil→valor, nunca "desmarcar". Trocar por AnyJSON se surgir uma ação de limpar.
-struct CrisePatch: Encodable {
+nonisolated struct CrisePatch: Encodable {
     var intensidade: String? = nil
     var localizacao: String? = nil
     var carater: String? = nil

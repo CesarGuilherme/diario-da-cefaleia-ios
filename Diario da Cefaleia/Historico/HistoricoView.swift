@@ -185,7 +185,11 @@ struct HistoricoView: View {
     @State private var editando: Crise?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        // LazyVStack: os cards só se materializam ao entrar na tela — importa
+        // conforme o histórico cresce. As swipeActions dos cards precisam do
+        // `.swipeActionsContainer()` no ScrollView que envolve esta view (ver
+        // AbaScroll em ContentView.swift) para coordenar apagar/editar.
+        LazyVStack(alignment: .leading, spacing: 12) {
             cabecalho
             if !diario.carregandoCrises && diario.crises.isEmpty {
                 CardVazio(titulo: "Nenhuma crise registrada", sub: "Registre a primeira crise para começar.")

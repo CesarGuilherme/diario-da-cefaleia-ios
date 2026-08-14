@@ -8,6 +8,8 @@
 
 import Foundation
 import Observation
+import PostgREST
+import Supabase
 
 @MainActor
 @Observable

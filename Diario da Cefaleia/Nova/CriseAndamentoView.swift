@@ -29,49 +29,52 @@ struct CriseAndamentoView: View {
     }
 
     var body: some View {
+        VStack(spacing: 16) {
+            Text("CRISE EM ANDAMENTO")
+                .font(.system(size: 13, weight: .semibold))
+                .tracking(1.5)
+                .foregroundStyle(.white.opacity(0.55))
+
+            anel
+            intensidadeSecao
+            sintomasSecao
+            medicacaoSecao
+
+            BotaoPrimario(titulo: "Encerrar crise", verde: true, desabilitado: ocupado, acao: fechar)
+            Legenda(texto: "A duração total é calculada automaticamente")
+        }
+        .padding(.top, 10)
+        .frame(maxWidth: .infinity)
+    }
+
+    // Só o anel/cronômetro precisa do tick — as seções abaixo (inclusive o campo de
+    // medicação com foco) não devem reconstruir a cada segundo.
+    private var anel: some View {
         TimelineView(.periodic(from: .now, by: 1)) { contexto in
             let decorrido = max(0, contexto.date.timeIntervalSince(ativa.inicio))
             let progresso = min(decorrido / duracaoVolta, 1)
 
-            VStack(spacing: 16) {
-                Text("CRISE EM ANDAMENTO")
-                    .font(.system(size: 13, weight: .semibold))
-                    .tracking(1.5)
-                    .foregroundStyle(.white.opacity(0.55))
-
-                anel(progresso: progresso, decorrido: decorrido)
-                intensidadeSecao
-                sintomasSecao
-                medicacaoSecao
-
-                BotaoPrimario(titulo: "Encerrar crise", verde: true, desabilitado: ocupado, acao: fechar)
-                Legenda(texto: "A duração total é calculada automaticamente")
+            ZStack {
+                Circle().stroke(Color.white.opacity(0.1), lineWidth: 10)
+                Circle()
+                    .trim(from: 0, to: progresso)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color(hex: 0xff9f0a), Color(hex: 0xff453a)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing),
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                VStack(spacing: 2) {
+                    Text(fmtDecorrido(decorrido * 1000))
+                        .font(.system(size: 48, weight: .bold))
+                        .monospacedDigit()
+                    Text("início às \(fmtHora(ativa.inicio))")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white.opacity(0.5))
+                }
             }
-            .padding(.top, 10)
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    private func anel(progresso: Double, decorrido: TimeInterval) -> some View {
-        ZStack {
-            Circle().stroke(Color.white.opacity(0.1), lineWidth: 10)
-            Circle()
-                .trim(from: 0, to: progresso)
-                .stroke(
-                    LinearGradient(
-                        colors: [Color(hex: 0xff9f0a), Color(hex: 0xff453a)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                    style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                )
-                .rotationEffect(.degrees(-90))
-            VStack(spacing: 2) {
-                Text(fmtDecorrido(decorrido * 1000))
-                    .font(.system(size: 48, weight: .bold))
-                    .monospacedDigit()
-                Text("início às \(fmtHora(ativa.inicio))")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.white.opacity(0.5))
-            }
+            .frame(width: 220, height: 220)
         }
         .frame(width: 220, height: 220)
     }
@@ -83,7 +86,7 @@ struct CriseAndamentoView: View {
                 Spacer()
                 Text("atualize se mudar").font(.system(size: 13)).foregroundStyle(.white.opacity(0.45))
             }
-            Segmented(opcoes: INTENSIDADES, valor: ativa.intensidade, cores: INT.mapValues(\.dot)) { v in
+            Segmented(opcoes: INTENSIDADES, valor: ativa.intensidade, cores: INT_DOTS) { v in
                 Task { await diario.atualizar(ativa.id, CrisePatch(intensidade: v)) }
             }
         }
@@ -128,7 +131,7 @@ struct CriseAndamentoView: View {
 
     private func alternarSintoma(_ s: String) {
         var sintomas = ativa.sintomas
-        if let idx = sintomas.firstIndex(of: s) { sintomas.remove(at: idx) } else { sintomas.append(s) }
+        sintomas.alternar(s)
         Task { await diario.atualizar(ativa.id, CrisePatch(sintomas: sintomas)) }
     }
 

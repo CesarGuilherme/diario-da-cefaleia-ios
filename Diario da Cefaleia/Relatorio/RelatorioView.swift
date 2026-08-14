@@ -6,7 +6,9 @@
 //  ShareLink troca navigator.share + fallback de clipboard inteiro.
 //
 
+import Auth
 import Charts
+import Supabase
 import SwiftUI
 
 /// Crises encerradas necessárias para o relatório dizer algo — regra única, mesma da web.
@@ -122,42 +124,53 @@ struct EstatisticasView: View {
     }
 }
 
-struct DiasPorMesView: View {
-    let crises: [Crise]
+struct CrisesPorDiaView: View {
+    // Calculado uma vez pelo chamador — antes era recalculado a cada frame de
+    // arraste no gráfico, porque `porDia` rodava dentro deste `body`.
+    let dias: [DiaInfo]
+    @State private var selecionado: Date?
 
     var body: some View {
-        let meses = porMes(crises)
-        if !meses.isEmpty {
+        if !dias.isEmpty {
+            let maxN = max(1, dias.map(\.n).max() ?? 1)
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Dias por mês").font(.system(size: 16, weight: .bold))
-                    HStack(spacing: 4) {
-                        Text("■").foregroundStyle(Color(hex: 0xff9f9a))
-                        Text("com crise")
-                        Text("·")
-                        Text("■").foregroundStyle(Color(hex: 0xebebf5, opacity: 0.35))
-                        Text("sem crise")
-                    }
-                    .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.5))
+                    Text("Crises por dia").font(.system(size: 16, weight: .bold))
+                    Text(legenda(dias))
+                        .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.5))
                 }
-                Chart(meses) { m in
-                    BarMark(x: .value("Mês", m.mes), y: .value("Com crise", m.com))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(hex: 0xff6961), Color(hex: 0xff453a)],
-                                startPoint: .top, endPoint: .bottom)
+                Chart(dias) { d in
+                    LineMark(
+                        x: .value("Dia", d.dia, unit: .day),
+                        y: .value("Crises", d.n)
+                    )
+                    .foregroundStyle(Color(hex: 0xff6961))
+                    .interpolationMethod(.linear)
+                    if d.n > 0 {
+                        PointMark(
+                            x: .value("Dia", d.dia, unit: .day),
+                            y: .value("Crises", d.n)
                         )
-                        .annotation(position: .top) {
-                            Text("\(m.com)").font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(Color(hex: 0xff9f9a))
-                        }
+                        .foregroundStyle(Color(hex: 0xff453a))
+                    }
                 }
-                .chartYScale(domain: 0...(meses.map(\.total).max() ?? 1))
-                .chartYAxis(.hidden)
-                .frame(height: 140)
+                .chartYScale(domain: 0...maxN)
+                .chartYAxis {
+                    AxisMarks(values: .automatic(desiredCount: 3))
+                }
+                .chartXSelection(value: $selecionado)
+                .chartScrollableAxes(dias.count > 45 ? .horizontal : [])
+                .chartXVisibleDomain(length: dias.count > 45 ? 45 * 24 * 3600 : TimeInterval(dias.count) * 24 * 3600)
+                .frame(height: 160)
             }
             .cartao()
         }
+    }
+
+    private func legenda(_ dias: [DiaInfo]) -> String {
+        guard let sel = selecionado else { return "Toque num ponto para ver o dia" }
+        let n = dias.first { calendarioBR.isDate($0.dia, inSameDayAs: sel) }?.n ?? 0
+        return "\(fmtDataHist(sel)) · \(n) \(n == 1 ? "crise" : "crises")"
     }
 }
 
@@ -178,8 +191,7 @@ struct CompartilharView: View {
             .frame(height: 54)
         }
         .foregroundStyle(.white)
-        .background(Color.white.opacity(0.12), in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18)))
+        .glassEffect(.regular.interactive(), in: .capsule)
     }
 }
 
@@ -208,28 +220,29 @@ struct RelatorioView: View {
     let paciente: Paciente
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                CabecalhoRelatorioView(n: diario.encerradas.count, carregando: diario.carregandoCrises)
+        // `diario.encerradas` refiltra `crises` a cada leitura — uma ligação local
+        // evita repetir isso quatro vezes neste body.
+        let encerradas = diario.encerradas
 
-                if !diario.carregandoCrises && diario.encerradas.count < MIN_CRISES_RELATORIO {
-                    SemDadosView()
-                }
+        VStack(alignment: .leading, spacing: 14) {
+            CabecalhoRelatorioView(n: encerradas.count, carregando: diario.carregandoCrises)
 
-                if diario.encerradas.count >= MIN_CRISES_RELATORIO {
-                    let a = analisar(diario.encerradas)
-                    InsightView(insight: a.insight)
-                    GatilhosView(gatilhos: a.gatilhos)
-                    DiasPorMesView(crises: diario.encerradas)
-                    EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
-                    CompartilharView(encerradas: diario.encerradas, paciente: paciente)
-                }
-
-                Button("Sair da conta") { Task { try? await supabase.auth.signOut() } }
-                    .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
-                    .padding(.top, 8)
+            if !diario.carregandoCrises && encerradas.count < MIN_CRISES_RELATORIO {
+                SemDadosView()
             }
-            .padding(.bottom, 8)
+
+            if encerradas.count >= MIN_CRISES_RELATORIO {
+                let a = analisar(encerradas)
+                InsightView(insight: a.insight)
+                GatilhosView(gatilhos: a.gatilhos)
+                CrisesPorDiaView(dias: porDia(encerradas))
+                EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
+                CompartilharView(encerradas: encerradas, paciente: paciente)
+            }
+
+            Button("Sair da conta") { Task { try? await supabase.auth.signOut() } }
+                .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
+                .padding(.top, 8)
         }
     }
 }

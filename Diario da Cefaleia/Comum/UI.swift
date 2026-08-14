@@ -18,22 +18,27 @@ let textoFraco2 = Color(hex: 0xebebf5, opacity: 0.45)
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    // Sem cache, sizeThatFits e placeSubviews mediam cada subview duas vezes por
+    // passada de layout. SwiftUI reusa esta cache entre as duas chamadas e só
+    // recalcula quando o conjunto de subviews muda.
+    func makeCache(subviews: Subviews) -> [CGSize] {
+        subviews.map { $0.sizeThatFits(.unspecified) }
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout [CGSize]) -> CGSize {
         let largura = proposal.width ?? 0
         // Sem largura finita não dá pra quebrar — mede uma linha só (tamanho intrínseco).
         // Devolver `.infinity` fazia o pai nunca apertar o layout e os chips vazarem.
         guard largura.isFinite, largura > 0 else {
             var w: CGFloat = 0, h: CGFloat = 0
-            for (i, view) in subviews.enumerated() {
-                let tam = view.sizeThatFits(.unspecified)
+            for (i, tam) in cache.enumerated() {
                 w += tam.width + (i > 0 ? spacing : 0)
                 h = max(h, tam.height)
             }
             return CGSize(width: w, height: h)
         }
         var x: CGFloat = 0, altura: CGFloat = 0, alturaLinha: CGFloat = 0
-        for view in subviews {
-            let tam = view.sizeThatFits(.unspecified)
+        for tam in cache {
             let w = min(tam.width, largura)
             if x + w > largura, x > 0 {
                 altura += alturaLinha + spacing
@@ -47,10 +52,10 @@ struct FlowLayout: Layout {
         return CGSize(width: largura, height: altura)
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout [CGSize]) {
         var x = bounds.minX, y = bounds.minY, alturaLinha: CGFloat = 0
-        for view in subviews {
-            let tam = view.sizeThatFits(.unspecified)
+        for (i, view) in subviews.enumerated() {
+            let tam = cache[i]
             let w = min(tam.width, bounds.width)
             if x + w > bounds.maxX, x > bounds.minX {
                 x = bounds.minX
@@ -61,6 +66,14 @@ struct FlowLayout: Layout {
             x += w + spacing
             alturaLinha = max(alturaLinha, tam.height)
         }
+    }
+}
+
+// MARK: - Toggle de seleção (chips de Sintomas, gatilhos)
+
+extension Array where Element: Equatable {
+    mutating func alternar(_ e: Element) {
+        if let i = firstIndex(of: e) { remove(at: i) } else { append(e) }
     }
 }
 

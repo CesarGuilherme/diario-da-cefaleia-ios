@@ -57,6 +57,10 @@ let INT: [String: PaletaIntensidade] = [
         dot: Color(hex: 0xff453a), glow: Color(hex: 0xff453a, opacity: 0.7),
         chipFg: Color(hex: 0xffb5b0), chipBg: Color(hex: 0xff453a, opacity: 0.16)),
 ]
+
+// Usado pelo Segmented de Intensidade (form e crise em andamento) — evita
+// recriar o dicionário a cada avaliação do body.
+let INT_DOTS = INT.mapValues(\.dot)
 let INT_PADRAO = INT["Moderada"]!  // fallback igual ao `INT[c.intensidade] ?? INT['Moderada']` da web
 
 // MARK: - Chip de gatilho no card do Histórico

@@ -9,6 +9,22 @@ import Auth
 import Supabase
 import SwiftUI
 
+// Hoisted: até quatro `Aurora`s ficam vivas ao mesmo tempo (uma por página do
+// TabView, mais a externa), e cada uma reconstruía estes quatro gradientes a
+// cada avaliação do body. Valores fixos, então valem como `let` de arquivo.
+private let auroraGrad1 = RadialGradient(
+    colors: [Color(hex: 0x7c6cf6, opacity: 0.38), .clear],
+    center: UnitPoint(x: 0.15, y: 0.08), startRadius: 0, endRadius: 260)
+private let auroraGrad2 = RadialGradient(
+    colors: [Color(hex: 0x38bdf8, opacity: 0.20), .clear],
+    center: UnitPoint(x: 0.9, y: 0.25), startRadius: 0, endRadius: 280)
+private let auroraGrad3 = RadialGradient(
+    colors: [Color(hex: 0x7c6cf6, opacity: 0.18), .clear],
+    center: UnitPoint(x: 0.6, y: 0.95), startRadius: 0, endRadius: 300)
+private let auroraGradAtiva = RadialGradient(
+    colors: [Color(hex: 0xff453a, opacity: 0.30), .clear],
+    center: UnitPoint(x: 0.5, y: 0), startRadius: 0, endRadius: 300)
+
 /// O 4º gradiente só aparece com crise aberta — junto com a aba vermelha, é o aviso do app.
 private struct Aurora: View {
     var ativa = false
@@ -17,19 +33,11 @@ private struct Aurora: View {
     var body: some View {
         ZStack {
             Color(hex: 0x0a0a13)
-            RadialGradient(
-                colors: [Color(hex: 0x7c6cf6, opacity: 0.38), .clear],
-                center: UnitPoint(x: 0.15, y: 0.08), startRadius: 0, endRadius: 260)
-            RadialGradient(
-                colors: [Color(hex: 0x38bdf8, opacity: 0.20), .clear],
-                center: UnitPoint(x: 0.9, y: 0.25), startRadius: 0, endRadius: 280)
-            RadialGradient(
-                colors: [Color(hex: 0x7c6cf6, opacity: 0.18), .clear],
-                center: UnitPoint(x: 0.6, y: 0.95), startRadius: 0, endRadius: 300)
+            auroraGrad1
+            auroraGrad2
+            auroraGrad3
             if ativa {
-                RadialGradient(
-                    colors: [Color(hex: 0xff453a, opacity: 0.30), .clear],
-                    center: UnitPoint(x: 0.5, y: 0), startRadius: 0, endRadius: 300)
+                auroraGradAtiva
                     .transition(.opacity)
             }
         }
@@ -60,6 +68,34 @@ private enum EstadoSessao {
     case logado(userId: UUID)
 }
 
+/// Continuação da launch screen do sistema: o UIKit derruba a launch screen real
+/// no primeiro frame renderizado, então nenhuma transição do SwiftUI atravessa
+/// essa borda. Isto mostra a mesma imagem/fundo e desaparece com fade — a costura
+/// vira invisível e a troca claro→escuro acontece dentro do app, animada.
+private struct LaunchContinuationView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var visivel = true
+
+    var body: some View {
+        if visivel {
+            ZStack {
+                Color("LaunchBackground")
+                Image("cefaleia-launch").resizable().scaledToFit()
+            }
+            .ignoresSafeArea()
+            .transition(.opacity)
+            .task {
+                if reduceMotion {
+                    visivel = false
+                } else {
+                    try? await Task.sleep(for: .milliseconds(300))
+                    withAnimation(.easeOut(duration: 0.4)) { visivel = false }
+                }
+            }
+        }
+    }
+}
+
 struct ContentView: View {
     @State private var estado: EstadoSessao = .carregando
 
@@ -87,6 +123,7 @@ struct ContentView: View {
         // A paleta inteira é escura — sem isso o texto segue o esquema claro/escuro
         // do sistema e fica ilegível sobre a aurora.
         .preferredColorScheme(.dark)
+        .overlay { LaunchContinuationView() }
     }
 }
 
@@ -228,6 +265,9 @@ private struct AbaScroll<Content: View>: View {
             }
             .scrollContentBackground(.hidden)
             .background(.clear)
+            // Sem isso, os `.swipeActions` do Histórico (editar/apagar) nunca disparam:
+            // fora de um `List`, é este modificador que coordena as ações de swipe.
+            .swipeActionsContainer()
         }
     }
 }

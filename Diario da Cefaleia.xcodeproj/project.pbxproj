@@ -6,20 +6,63 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DBC69337302FB6AF00074CC8 /* cefaleia-launch.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DBC69336302FB6AF00074CC8 /* cefaleia-launch.jpg */; };
+		DBE5A003302C9F00008A0003 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = DBE5A002302C9F00008A0002 /* Supabase */; };
+		DBED17A2302E716300BF1E69 /* cefaleia-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DB5BBF79302C9B03006F0DEA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB4F6BE2302B6D580014AC08 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB4F6BE9302B6D590014AC08;
+			remoteInfo = "Diario da Cefaleia";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diario da Cefaleia.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Diario da Cefaleia Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBC69336302FB6AF00074CC8 /* cefaleia-launch.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "cefaleia-launch.jpg"; sourceTree = "<group>"; };
+		DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "cefaleia-icon.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DBF93BD6302C9A6D008E5F77 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Diario-da-Cefaleia-Info.plist",
+			);
+			target = DB4F6BE9302B6D590014AC08 /* Diario da Cefaleia */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DBF93BD6302C9A6D008E5F77 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia" target */,
+			);
 			path = "Diario da Cefaleia";
+			sourceTree = "<group>";
+		};
+		DB5BBF76302C9B03006F0DEA /* Diario da Cefaleia Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Diario da Cefaleia Tests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DB4F6BE7302B6D590014AC08 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				DBE5A003302C9F00008A0003 /* Supabase in Frameworks */,
+			);
+		};
+		DB5BBF72302C9B02006F0DEA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -31,6 +74,9 @@
 			isa = PBXGroup;
 			children = (
 				DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */,
+				DB5BBF76302C9B03006F0DEA /* Diario da Cefaleia Tests */,
+				DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */,
+				DBC69336302FB6AF00074CC8 /* cefaleia-launch.jpg */,
 				DB4F6BEB302B6D590014AC08 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */,
+				DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,9 +107,33 @@
 				DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */,
 			);
 			name = "Diario da Cefaleia";
+			packageProductDependencies = (
+				DBE5A002302C9F00008A0002 /* Supabase */,
+			);
 			productName = "Diario da Cefaleia";
 			productReference = DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DB5BBF74302C9B02006F0DEA /* Diario da Cefaleia Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB5BBF7B302C9B03006F0DEA /* Build configuration list for PBXNativeTarget "Diario da Cefaleia Tests" */;
+			buildPhases = (
+				DB5BBF71302C9B02006F0DEA /* Sources */,
+				DB5BBF72302C9B02006F0DEA /* Frameworks */,
+				DB5BBF73302C9B02006F0DEA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DB5BBF7A302C9B03006F0DEA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DB5BBF76302C9B03006F0DEA /* Diario da Cefaleia Tests */,
+			);
+			name = "Diario da Cefaleia Tests";
+			productName = "Diario da Cefaleia Tests";
+			productReference = DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -77,6 +148,10 @@
 					DB4F6BE9302B6D590014AC08 = {
 						CreatedOnToolsVersion = 27.0;
 					};
+					DB5BBF74302C9B02006F0DEA = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = DB4F6BE9302B6D590014AC08;
+					};
 				};
 			};
 			buildConfigurationList = DB4F6BE5302B6D580014AC08 /* Build configuration list for PBXProject "Diario da Cefaleia" */;
@@ -88,18 +163,29 @@
 			);
 			mainGroup = DB4F6BE1302B6D580014AC08;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DB4F6BEB302B6D590014AC08 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				DB4F6BE9302B6D590014AC08 /* Diario da Cefaleia */,
+				DB5BBF74302C9B02006F0DEA /* Diario da Cefaleia Tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		DB4F6BE8302B6D590014AC08 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				DBED17A2302E716300BF1E69 /* cefaleia-icon.icon in Resources */,
+				DBC69337302FB6AF00074CC8 /* cefaleia-launch.jpg in Resources */,
+			);
+		};
+		DB5BBF73302C9B02006F0DEA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -112,7 +198,20 @@
 			files = (
 			);
 		};
+		DB5BBF71302C9B02006F0DEA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DB5BBF7A302C9B03006F0DEA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB4F6BE9302B6D590014AC08 /* Diario da Cefaleia */;
+			targetProxy = DB5BBF79302C9B03006F0DEA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		DB4F6BF5302B6D5C0014AC08 /* Debug configuration for PBXProject "Diario da Cefaleia" */ = {
@@ -239,16 +338,17 @@
 		DB4F6BF8302B6D5C0014AC08 /* Debug configuration for PBXNativeTarget "Diario da Cefaleia" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia/Diario da Cefaleia.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -264,23 +364,24 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		DB4F6BF9302B6D5C0014AC08 /* Release configuration for PBXNativeTarget "Diario da Cefaleia" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia/Diario da Cefaleia.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -296,7 +397,57 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		DB5BBF7C302C9B03006F0DEA /* Debug configuration for PBXNativeTarget "Diario da Cefaleia Tests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia.Diario-da-Cefaleia-Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Diario da Cefaleia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Diario da Cefaleia";
+				XROS_DEPLOYMENT_TARGET = 27.0;
+			};
+			name = Debug;
+		};
+		DB5BBF7D302C9B03006F0DEA /* Release configuration for PBXNativeTarget "Diario da Cefaleia Tests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia.Diario-da-Cefaleia-Tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Diario da Cefaleia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Diario da Cefaleia";
+				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
@@ -319,7 +470,34 @@
 			);
 			defaultConfigurationName = Release;
 		};
+		DB5BBF7B302C9B03006F0DEA /* Build configuration list for PBXNativeTarget "Diario da Cefaleia Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB5BBF7C302C9B03006F0DEA /* Debug configuration for PBXNativeTarget "Diario da Cefaleia Tests" */,
+				DB5BBF7D302C9B03006F0DEA /* Release configuration for PBXNativeTarget "Diario da Cefaleia Tests" */,
+			);
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DBE5A002302C9F00008A0002 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DB4F6BE2302B6D580014AC08 /* Project object */;
 	validationLevel = 1;

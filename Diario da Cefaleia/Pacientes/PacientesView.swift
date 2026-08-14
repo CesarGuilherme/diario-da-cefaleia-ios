@@ -97,7 +97,9 @@ struct FormPacienteView: View {
 }
 
 /// Troca de paciente. `Picker` nativo troca a roleta HTML da web; "+" e "✎" ficam
-/// como botões dedicados em vez de um item dentro do dropdown.
+/// como botões dedicados em vez de um item dentro do dropdown. `GlassEffectContainer`
+/// deixa os três elementos de vidro (picker + 2 botões) se fundirem num só grupo,
+/// em vez de cada um borrar o fundo separadamente.
 struct BarraPacienteView: View {
     let pacientes: [Paciente]
     let selecionado: Paciente
@@ -106,21 +108,48 @@ struct BarraPacienteView: View {
     let onEditar: () -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Picker("Paciente", selection: Binding(get: { selecionado.id }, set: escolher)) {
-                ForEach(pacientes) { p in Text(p.nome).tag(p.id) }
-            }
-            .pickerStyle(.menu)
-            .campo()
+        GlassEffectContainer(spacing: 8) {
+            HStack(spacing: 8) {
+                Picker("Paciente", selection: Binding(get: { selecionado.id }, set: escolher)) {
+                    ForEach(pacientes) { p in Text(p.nome).tag(p.id) }
+                }
+                .pickerStyle(.menu)
+                .tint(.white)
+                .font(.system(size: 16, weight: .semibold))
+                // O nome era espremido pelos botões ao lado — pede toda a largura
+                // sobrando em vez de encolher pro tamanho intrínseco do texto.
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14)
+                .frame(height: 44)
+                .glassEffect(in: Capsule())
 
-            if let anos = idade(selecionado.dataNascimento) {
-                Text("\(anos) anos").font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
-            }
+                if let anos = idade(selecionado.dataNascimento) {
+                    Text("\(anos) anos")
+                        .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
+                        .fixedSize()
+                }
 
-            Button(action: onNovo) { Image(systemName: "plus") }
-                .frame(width: 40, height: 40).campo()
-            Button(action: onEditar) { Image(systemName: "pencil") }
-                .frame(width: 40, height: 40).campo()
+                Button(action: onNovo) { Image(systemName: "plus") }
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .glassEffect(in: Circle())
+                Button(action: onEditar) { Image(systemName: "pencil") }
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .glassEffect(in: Circle())
+            }
         }
     }
 }
+#Preview {
+    let manuela = Paciente(id: UUID(), nome: "Manuela Fernandes", dataNascimento: "2014-03-22", criadoEm: Date())
+    ZStack {
+        Color(hex: 0x0a0a13).ignoresSafeArea()
+        BarraPacienteView(
+            pacientes: [manuela], selecionado: manuela,
+            escolher: { _ in }, onNovo: {}, onEditar: {})
+            .padding()
+    }
+    .preferredColorScheme(.dark)
+}
+

@@ -18,7 +18,9 @@ private let mesesCompletos = [
     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
 ]
 
-private let calendarioBR: Calendar = {
+// Compartilhado com Report.swift e RelatorioView.swift — evita reconstruir um
+// Calendar a cada chamada (RelatorioView recalcula por frame ao arrastar o gráfico).
+let calendarioBR: Calendar = {
     var cal = Calendar(identifier: .gregorian)
     cal.locale = Locale(identifier: "pt_BR")
     return cal
