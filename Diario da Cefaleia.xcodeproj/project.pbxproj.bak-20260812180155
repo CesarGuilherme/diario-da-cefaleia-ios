@@ -6,11 +6,6 @@
 	objectVersion = 110;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		DBE5A003302C9F00008A0003 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = DBE5A002302C9F00008A0002 /* Supabase */; };
-		DBED17A2302E716300BF1E69 /* cefaleia-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		DB5BBF79302C9B03006F0DEA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,7 +19,6 @@
 /* Begin PBXFileReference section */
 		DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diario da Cefaleia.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Diario da Cefaleia Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "cefaleia-icon.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -57,7 +51,6 @@
 		DB4F6BE7302B6D590014AC08 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
-				DBE5A003302C9F00008A0003 /* Supabase in Frameworks */,
 			);
 		};
 		DB5BBF72302C9B02006F0DEA /* Frameworks */ = {
@@ -73,7 +66,6 @@
 			children = (
 				DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */,
 				DB5BBF76302C9B03006F0DEA /* Diario da Cefaleia Tests */,
-				DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */,
 				DB4F6BEB302B6D590014AC08 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -104,9 +96,6 @@
 				DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */,
 			);
 			name = "Diario da Cefaleia";
-			packageProductDependencies = (
-				DBE5A002302C9F00008A0002 /* Supabase */,
-			);
 			productName = "Diario da Cefaleia";
 			productReference = DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */;
 			productType = "com.apple.product-type.application";
@@ -160,10 +149,7 @@
 			);
 			mainGroup = DB4F6BE1302B6D580014AC08;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */,
-			);
-			preferredProjectObjectVersion = 110;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = DB4F6BEB302B6D590014AC08 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -178,7 +164,6 @@
 		DB4F6BE8302B6D590014AC08 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				DBED17A2302E716300BF1E69 /* cefaleia-icon.icon in Resources */,
 			);
 		};
 		DB5BBF73302C9B02006F0DEA /* Resources */ = {
@@ -334,10 +319,9 @@
 		DB4F6BF8302B6D5C0014AC08 /* Debug configuration for PBXNativeTarget "Diario da Cefaleia" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia/Diario da Cefaleia.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
@@ -346,9 +330,9 @@
 				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -356,7 +340,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -370,10 +353,9 @@
 		DB4F6BF9302B6D5C0014AC08 /* Release configuration for PBXNativeTarget "Diario da Cefaleia" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia/Diario da Cefaleia.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
@@ -382,9 +364,9 @@
 				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -392,7 +374,6 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -407,18 +388,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia.Diario-da-Cefaleia-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -436,18 +413,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia.Diario-da-Cefaleia-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -489,25 +462,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/supabase/supabase-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		DBE5A002302C9F00008A0002 /* Supabase */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */;
-			productName = Supabase;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DB4F6BE2302B6D580014AC08 /* Project object */;
 	validationLevel = 1;
