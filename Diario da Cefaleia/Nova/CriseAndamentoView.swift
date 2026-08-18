@@ -16,6 +16,7 @@ struct CriseAndamentoView: View {
     @State private var alivio: String?  // só vai pro banco ao encerrar
     @State private var medicacao: String
     @State private var ocupado = false
+    @State private var filaSintomas: Task<Void, Never>?
     @FocusState private var medicacaoFocada: Bool
 
     private let duracaoVolta: TimeInterval = 180 * 60  // o anel completa uma volta em 3h
@@ -129,10 +130,15 @@ struct CriseAndamentoView: View {
         .cartao()
     }
 
+    // Encadeia os patches: cada toque espera o anterior confirmar e lê a linha que o
+    // servidor devolveu — dois toques rápidos não se sobrescrevem.
     private func alternarSintoma(_ s: String) {
-        var sintomas = ativa.sintomas
-        sintomas.alternar(s)
-        Task { await diario.atualizar(ativa.id, CrisePatch(sintomas: sintomas)) }
+        filaSintomas = Task { [anterior = filaSintomas] in
+            await anterior?.value
+            var sintomas = diario.ativa?.sintomas ?? ativa.sintomas
+            sintomas.alternar(s)
+            _ = await diario.atualizar(ativa.id, CrisePatch(sintomas: sintomas))
+        }
     }
 
     private func salvarMedicacaoSeMudou() {
@@ -142,8 +148,11 @@ struct CriseAndamentoView: View {
 
     private func fechar() {
         ocupado = true
+        // Tocar o botão não tira o foco do campo — a medicação pendente vai no patch
+        // de encerramento, senão o save por perda de foco nunca dispararia.
         Task {
-            if await diario.encerrar(ativa.id, alivio: alivio) {
+            let med = medicacao != ativa.medicacao ? medicacao : nil
+            if await diario.encerrar(ativa.id, alivio: alivio, medicacao: med) {
                 irParaHistorico()
             } else {
                 ocupado = false

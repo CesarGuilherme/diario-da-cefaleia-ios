@@ -110,7 +110,9 @@ struct ContentView: View {
                 case .deslogado:
                     ZStack { Aurora(); LoginView() }
                 case .logado(let userId):
-                    DiarioRootView(userId: userId)
+                    // .id força estado novo se o uid trocar sem passar por .deslogado —
+                    // @State ignora o initialValue depois da primeira inserção.
+                    DiarioRootView(userId: userId).id(userId)
                 }
             }
         }

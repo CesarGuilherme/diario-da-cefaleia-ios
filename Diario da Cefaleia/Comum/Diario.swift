@@ -67,11 +67,16 @@ final class Diario {
         }
         carregandoCrises = true
         do {
-            crises = try await supabase.from("crises")
+            let dados: [Crise] = try await supabase.from("crises")
                 .select().eq("paciente_id", value: pid)
                 .order("inicio", ascending: false)
                 .execute().value
+            // Trocou de paciente enquanto esta busca voava? A resposta é de outro
+            // paciente — descarta, a busca dele já está a caminho.
+            guard pid == paciente?.id else { return }
+            crises = dados
         } catch {
+            guard pid == paciente?.id else { return }
             erro = error.localizedDescription
         }
         carregandoCrises = false
@@ -133,8 +138,8 @@ final class Diario {
         }
     }
 
-    func encerrar(_ id: UUID, alivio: String?) async -> Bool {
-        await atualizar(id, CrisePatch(fim: Date(), alivio: alivio))
+    func encerrar(_ id: UUID, alivio: String?, medicacao: String? = nil) async -> Bool {
+        await atualizar(id, CrisePatch(medicacao: medicacao, fim: Date(), alivio: alivio))
     }
 
     func apagar(_ id: UUID) async -> Bool {

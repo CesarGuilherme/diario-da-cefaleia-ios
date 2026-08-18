@@ -77,22 +77,12 @@ struct CamposCriseView: View {
     private func gatilhoLinha(_ g: (label: String, valor: String, dica: String)) -> some View {
         let ligado = form.gatilhos.contains(g.valor)
         return VStack(alignment: .leading, spacing: 0) {
-            Button {
-                alternarGatilho(g.valor)
-            } label: {
-                HStack {
-                    Text(g.label).font(.system(size: 15)).foregroundStyle(.white)
-                    Spacer()
-                    Capsule()
-                        .fill(ligado ? Color(hex: 0x30d158) : Color.white.opacity(0.32))
-                        .frame(width: 48, height: 29)
-                        .overlay(alignment: ligado ? .trailing : .leading) {
-                            Circle().fill(.white).frame(width: 25, height: 25).padding(2)
-                                .shadow(color: .black.opacity(0.3), radius: 4, y: 1)
-                        }
-                }
-                .padding(.vertical, 8)
+            // Toggle nativo: mesmo visual, e o VoiceOver anuncia como switch on/off.
+            Toggle(isOn: Binding(get: { ligado }, set: { _ in alternarGatilho(g.valor) })) {
+                Text(g.label).font(.system(size: 15)).foregroundStyle(.white)
             }
+            .tint(Color(hex: 0x30d158))
+            .padding(.vertical, 8)
 
             // O detalhe só existe se o gatilho está ligado — nada de campo órfão.
             if ligado {

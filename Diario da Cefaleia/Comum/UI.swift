@@ -8,8 +8,6 @@
 
 import SwiftUI
 
-private let neutroBg = Color(hex: 0x787880, opacity: 0.2)
-private let neutroBd = Color.white.opacity(0.1)
 let textoFraco = Color(hex: 0xebebf5, opacity: 0.55)
 let textoFraco2 = Color(hex: 0xebebf5, opacity: 0.45)
 
@@ -153,22 +151,26 @@ struct Segmented: View {
     let onChange: (String) -> Void
 
     var body: some View {
-        HStack(spacing: spacing) {
-            ForEach(opcoes, id: \.self) { o in
-                let sel = o == valor
-                Button {
-                    onChange(o)
-                } label: {
-                    Text(o)
-                        .font(.system(size: fontSize, weight: sel ? .bold : .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, verticalPadding)
+        // Como na BarraPacienteView: o container faz os vidros vizinhos amostrarem o
+        // fundo juntos e se fundirem, em vez de cada cápsula desfocar por conta própria.
+        GlassEffectContainer(spacing: spacing) {
+            HStack(spacing: spacing) {
+                ForEach(opcoes, id: \.self) { o in
+                    let sel = o == valor
+                    Button {
+                        onChange(o)
+                    } label: {
+                        Text(o)
+                            .font(.system(size: fontSize, weight: sel ? .bold : .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, verticalPadding)
+                    }
+                    .foregroundStyle(sel ? .black : .white)
+                    .buttonStyle(.glass(sel ? .regular.tint(cores?[o] ?? corNeutra) : .regular))
+                    .animation(.snappy, value: valor)
                 }
-                .foregroundStyle(sel ? .black : .white)
-                .buttonStyle(.glass(sel ? .regular.tint(cores?[o] ?? corNeutra) : .regular))
-                .animation(.snappy, value: valor)
             }
         }
         .padding(4)
@@ -190,16 +192,7 @@ struct Chip: View {
                 .padding(.vertical, 8)
         }
         .foregroundStyle(selecionado ? .white : Color(hex: 0xebebf5, opacity: 0.6))
-        .background {
-            if selecionado {
-                Capsule().fill(
-                    LinearGradient(
-                        colors: [Color(hex: 0x8b7cfc, opacity: 0.9), Color(hex: 0x6c5ce7, opacity: 0.9)],
-                        startPoint: .top, endPoint: .bottom))
-            } else {
-                Capsule().fill(neutroBg).overlay(Capsule().strokeBorder(neutroBd))
-            }
-        }
+        .buttonStyle(.glass(selecionado ? .regular.tint(Color(hex: 0x6c5ce7, opacity: 0.9)) : .regular))
         .animation(.snappy, value: selecionado)
     }
 }
