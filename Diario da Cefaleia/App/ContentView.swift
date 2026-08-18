@@ -119,7 +119,14 @@ struct ContentView: View {
         .task {
             guard !faltaConfig else { return }
             for await (_, sessao) in supabase.auth.authStateChanges {
-                estado = sessao.map { .logado(userId: $0.user.id) } ?? .deslogado
+                // emitLocalSessionAsInitialSession manda a sessão local direto, mesmo expirada,
+                // e só tenta o refresh depois em background — sem o isExpired aqui a UI piscaria
+                // "logado" antes do refresh falhar e derrubar de volta pro login.
+                if let sessao, !sessao.isExpired {
+                    estado = .logado(userId: sessao.user.id)
+                } else if sessao == nil {
+                    estado = .deslogado
+                }
             }
         }
         // A paleta inteira é escura — sem isso o texto segue o esquema claro/escuro

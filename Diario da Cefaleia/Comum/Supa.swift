@@ -19,9 +19,15 @@ private let supabaseAnonKey = infoPlist?["SUPABASE_ANON_KEY"] as? String
 let faltaConfig = supabaseURLString == nil || supabaseAnonKey == nil
     || supabaseURLString?.isEmpty == true || supabaseAnonKey?.isEmpty == true
 
+// emitLocalSessionAsInitialSession: true evita o reportIssue "Initial session emitted
+// after attempting to refresh..." do supabase-swift — comportamento legado (false) sempre
+// dispara esse aviso; é a opção que a própria lib recomenda para silenciá-lo.
 let supabase = SupabaseClient(
     supabaseURL: URL(string: supabaseURLString ?? "https://fachada.supabase.co")!,
-    supabaseKey: supabaseAnonKey ?? "fachada"
+    supabaseKey: supabaseAnonKey ?? "fachada",
+    options: SupabaseClientOptions(
+        auth: .init(emitLocalSessionAsInitialSession: true)
+    )
 )
 
 // MARK: - Modelos
