@@ -295,4 +295,46 @@ struct ReportTests {
     func porDiaVazio() {
         #expect(porDia([]).isEmpty)
     }
+
+    // O snapshot é o que vai para o link público — o que ele não carrega importa tanto quanto
+    // o que carrega. Espelha os testes de snapshotRelatorio em report.test.mjs.
+    @Test("snapshot não leva id, user_id, paciente_id nem data de nascimento")
+    func snapshotNaoVazaIdentificadores() throws {
+        let paciente = Paciente(
+            id: UUID(), nome: "Noah", dataNascimento: "2014-03-22",
+            criadoEm: data("2025-01-01T00:00:00Z"))
+        let snap = snapshotRelatorio(SEEDS, paciente: paciente, hoje: dataLocal(ano: 2026, mes: 2, dia: 10))
+        let enc = JSONEncoder()
+        enc.dateEncodingStrategy = .iso8601
+        let texto = String(data: try enc.encode(snap), encoding: .utf8)!
+        for proibido in ["user_id", "paciente_id", "\"id\"", "data_nascimento", "2014-03-22"] {
+            #expect(!texto.contains(proibido), "snapshot vazou \(proibido)")
+        }
+        #expect(snap.paciente == SnapshotPaciente(nome: "Noah", idade: 11))
+        #expect(snap.geradoEm == dataLocal(ano: 2026, mes: 2, dia: 10))
+    }
+
+    @Test("snapshot alimenta o mesmo relatório da tela")
+    func snapshotAlimentaMesmoRelatorio() {
+        let paciente = Paciente(
+            id: UUID(), nome: "Noah", dataNascimento: "2014-03-22",
+            criadoEm: data("2025-01-01T00:00:00Z"))
+        let hoje = dataLocal(ano: 2025, mes: 8, dia: 31)
+        let snap = snapshotRelatorio(SEEDS, paciente: paciente, hoje: hoje)
+        let reconstruidas = snap.crises.map {
+            Crise(
+                id: UUID(), pacienteId: UUID(), inicio: $0.inicio, fim: $0.fim,
+                intensidade: $0.intensidade, localizacao: $0.localizacao, carater: $0.carater,
+                sintomas: $0.sintomas, sonoHoras: $0.sonoHoras, gatilhos: $0.gatilhos,
+                detalhes: $0.detalhes, medicacao: $0.medicacao, alivio: $0.alivio)
+        }
+        let gSnap = analisar(reconstruidas).gatilhos
+        let gSeeds = analisar(SEEDS).gatilhos
+        #expect(gSnap.count == gSeeds.count)
+        for (a, b) in zip(gSnap, gSeeds) {
+            #expect(a.label == b.label)
+            #expect(a.pct == b.pct)
+        }
+        #expect(porDia(reconstruidas, hoje: hoje).map(\.n) == porDia(SEEDS, hoje: hoje).map(\.n))
+    }
 }

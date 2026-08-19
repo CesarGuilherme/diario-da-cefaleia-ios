@@ -3,13 +3,14 @@
 //  Diario da Cefaleia
 //
 //  Espelha screens/Relatorio.jsx. Swift Charts troca a barra empilhada em CSS;
-//  ShareLink troca navigator.share + fallback de clipboard inteiro.
+//  o card de compartilhar gera link público em `relatorios` e abre o share sheet.
 //
 
 import Auth
 import Charts
 import Supabase
 import SwiftUI
+import UIKit
 
 /// Crises encerradas necessárias para o relatório dizer algo — regra única, mesma da web.
 let MIN_CRISES_RELATORIO = 2
@@ -174,25 +175,220 @@ struct CrisesPorDiaView: View {
     }
 }
 
-/// Botão + aviso: o estado do compartilhamento pertence ao botão, não à tela.
-/// `ShareLink` troca `navigator.share` + fallback de clipboard + tratamento de erro.
+/// Compartilhar com o médico: card com link público. Espelha `Compartilhar` em
+/// Relatorio.jsx — botão grande gera/envia a URL; texto e copiar/revogar são secundários.
 struct CompartilharView: View {
     let encerradas: [Crise]
-    let paciente: Paciente?
+    let paciente: Paciente
+
+    @State private var link: RelatorioPublico?
+    @State private var ocupado = true
+    @State private var aviso: String?
+    @State private var confirmarRevogar = false
+    @State private var shareItem: ShareItem?
+
+    private var url: URL? { link.flatMap { urlRelatorioPublico($0.id) } }
 
     var body: some View {
-        ShareLink(item: textoRelatorio(encerradas, paciente: paciente)) {
-            HStack {
-                Image(systemName: "square.and.arrow.up")
-                Text("Compartilhar com o médico")
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Compartilhar com o médico").font(.system(size: 16, weight: .bold))
+            Text("Uma página só de leitura com este relatório, que abre sem conta nenhuma. Quem tiver o endereço vê o relatório — ele não é indexado, mas também não pede senha.")
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: 0xebebf5, opacity: 0.5))
+                .padding(.top, 2)
+                .padding(.bottom, 14)
+
+            if let url, let link {
+                Text(url.absoluteString)
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color(hex: 0xebebf5, opacity: 0.85))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14).padding(.vertical, 11)
+                    .glassEffect(in: .rect(cornerRadius: 14))
+                Text("Expira em \(fmtDataHist(link.expiraEm)) · congelado como o relatório está hoje")
+                    .font(.system(size: 12))
+                    .foregroundStyle(textoFraco2)
+                    .padding(.top, 8)
             }
-            .font(.system(size: 16, weight: .bold))
+
+            Button {
+                Task { await enviar() }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text(url == nil ? "Gerar link e enviar" : "Enviar link ao médico")
+                }
+                .font(.system(size: 16, weight: .bold))
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+            }
+            .foregroundStyle(.white)
+            .glassEffect(.regular.interactive(), in: .capsule)
+            .disabled(ocupado)
+            .opacity(ocupado ? 0.5 : 1)
+            .padding(.top, 14)
+
+            FlowLayout(spacing: 4) {
+                if url != nil {
+                    SecundariaLink("copiar", desabilitado: ocupado) { copiar() }
+                    SecundariaLink("gerar novo", desabilitado: ocupado) {
+                        Task { _ = await gerar() }
+                    }
+                    SecundariaLink("revogar", desabilitado: ocupado, perigo: true) {
+                        confirmarRevogar = true
+                    }
+                }
+                SecundariaLink("copiar como texto", desabilitado: ocupado) { copiarTexto() }
+            }
             .frame(maxWidth: .infinity)
-            .frame(height: 54)
+            .padding(.top, 12)
+
+            if let aviso {
+                Text(aviso)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color(hex: 0xebebf5, opacity: 0.6))
+                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 10)
+            }
         }
-        .foregroundStyle(.white)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .cartao(padding: 18)
+        .task(id: paciente.id) { await carregar() }
+        .confirmationDialog(
+            "Revogar o link? Quem já recebeu deixa de conseguir abrir.",
+            isPresented: $confirmarRevogar, titleVisibility: .visible
+        ) {
+            Button("Revogar", role: .destructive) { Task { await revogar() } }
+            Button("Cancelar", role: .cancel) {}
+        }
+        .sheet(item: $shareItem) { item in
+            ActivityView(items: [item.url])
+                .presentationDetents([.medium, .large])
+        }
     }
+
+    private func carregar() async {
+        ocupado = true
+        aviso = nil
+        do {
+            let rows: [RelatorioPublico] = try await supabase.from("relatorios")
+                .select("id, paciente_id, criado_em, expira_em")
+                .eq("paciente_id", value: paciente.id)
+                .order("criado_em", ascending: false)
+                .limit(1)
+                .execute().value
+            link = rows.first.flatMap { $0.expiraEm < Date() ? nil : $0 }
+        } catch {
+            link = nil
+            aviso = error.localizedDescription
+        }
+        ocupado = false
+    }
+
+    private func gerar() async -> URL? {
+        guard publicReportBaseURL != nil else {
+            aviso = "Falta PUBLIC_REPORT_BASE_URL no Info.plist."
+            return nil
+        }
+        ocupado = true
+        aviso = nil
+        defer { ocupado = false }
+        do {
+            let criado: RelatorioPublico = try await supabase.from("relatorios")
+                .insert(RelatorioInput(
+                    pacienteId: paciente.id,
+                    dados: snapshotRelatorio(encerradas, paciente: paciente)))
+                .select("id, paciente_id, criado_em, expira_em")
+                .single()
+                .execute().value
+            // Insere antes de apagar: se a limpeza falhar sobra um link a mais, nunca nenhum.
+            _ = try? await supabase.from("relatorios")
+                .delete()
+                .eq("paciente_id", value: paciente.id)
+                .neq("id", value: criado.id)
+                .execute()
+            link = criado
+            return urlRelatorioPublico(criado.id)
+        } catch {
+            aviso = error.localizedDescription
+            return nil
+        }
+    }
+
+    private func enviar() async {
+        let alvo: URL?
+        if let url { alvo = url } else { alvo = await gerar() }
+        guard let alvo else { return }
+        shareItem = ShareItem(url: alvo)
+    }
+
+    private func copiar() {
+        guard let url else { return }
+        UIPasteboard.general.string = url.absoluteString
+        aviso = "Link copiado."
+    }
+
+    private func copiarTexto() {
+        UIPasteboard.general.string = textoRelatorio(encerradas, paciente: paciente)
+        aviso = "Relatório copiado como texto."
+    }
+
+    private func revogar() async {
+        guard let link else { return }
+        ocupado = true
+        do {
+            try await supabase.from("relatorios").delete().eq("id", value: link.id).execute()
+            self.link = nil
+            aviso = nil
+        } catch {
+            aviso = error.localizedDescription
+        }
+        ocupado = false
+    }
+}
+
+private struct SecundariaLink: View {
+    let titulo: String
+    var desabilitado = false
+    var perigo = false
+    let acao: () -> Void
+
+    init(_ titulo: String, desabilitado: Bool = false, perigo: Bool = false, acao: @escaping () -> Void) {
+        self.titulo = titulo
+        self.desabilitado = desabilitado
+        self.perigo = perigo
+        self.acao = acao
+    }
+
+    var body: some View {
+        Button(action: acao) {
+            Text(titulo)
+                .font(.system(size: 13))
+                .underline(color: perigo ? Color(hex: 0xff9f9a, opacity: 0.85) : textoFraco)
+                .foregroundStyle(perigo ? Color(hex: 0xff9f9a, opacity: 0.85) : textoFraco)
+        }
+        .buttonStyle(.plain)
+        .disabled(desabilitado)
+        .opacity(desabilitado ? 0.5 : 1)
+        .padding(.horizontal, 8).padding(.vertical, 6)
+    }
+}
+
+private struct ShareItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+/// `UIActivityViewController` — o equivalente iOS de `navigator.share({ url })`.
+private struct ActivityView: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct CabecalhoRelatorioView: View {

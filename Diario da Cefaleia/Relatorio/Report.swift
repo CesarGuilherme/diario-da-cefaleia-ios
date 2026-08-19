@@ -182,6 +182,67 @@ func analisar(_ crises: [Crise]) -> Analise {
     return Analise(gatilhos: gatilhos, insight: insight, frequencia: frequencia, duracaoMedia: duracaoMedia)
 }
 
+// MARK: - Snapshot do link público
+
+/// O que vai no link público é uma cópia congelada, não um espelho: o médico vê daqui a
+/// 20 dias o mesmo relatório que você mandou, e crise nova não vaza para um link já enviado.
+/// Sem ids e sem data_nascimento — só o que o relatório desenha. Espelha snapshotRelatorio
+/// em report.js.
+nonisolated struct SnapshotRelatorio: Encodable, Equatable {
+    var versao: Int
+    var geradoEm: Date
+    var paciente: SnapshotPaciente
+    var crises: [SnapshotCrise]
+
+    enum CodingKeys: String, CodingKey {
+        case versao
+        case geradoEm = "gerado_em"
+        case paciente, crises
+    }
+}
+
+nonisolated struct SnapshotPaciente: Encodable, Equatable {
+    var nome: String
+    var idade: Int?
+}
+
+nonisolated struct SnapshotCrise: Encodable, Equatable {
+    var inicio: Date
+    var fim: Date?
+    var intensidade: String
+    var localizacao: String
+    var carater: String
+    var sintomas: [String]
+    var sonoHoras: Double
+    var gatilhos: [String]
+    var detalhes: [String: [String]]
+    var medicacao: String
+    var alivio: String?
+
+    enum CodingKeys: String, CodingKey {
+        case inicio, fim, intensidade, localizacao, carater, sintomas
+        case sonoHoras = "sono_horas"
+        case gatilhos, detalhes, medicacao, alivio
+    }
+}
+
+func snapshotRelatorio(
+    _ encerradas: [Crise], paciente: Paciente, hoje: Date = Date()
+) -> SnapshotRelatorio {
+    SnapshotRelatorio(
+        versao: 1,
+        geradoEm: hoje,
+        paciente: SnapshotPaciente(nome: paciente.nome, idade: idade(paciente.dataNascimento, hoje: hoje)),
+        crises: encerradas.map {
+            SnapshotCrise(
+                inicio: $0.inicio, fim: $0.fim,
+                intensidade: $0.intensidade, localizacao: $0.localizacao, carater: $0.carater,
+                sintomas: $0.sintomas, sonoHoras: $0.sonoHoras,
+                gatilhos: $0.gatilhos, detalhes: $0.detalhes,
+                medicacao: $0.medicacao, alivio: $0.alivio)
+        })
+}
+
 /// Texto compartilhado com o médico.
 func textoRelatorio(_ crises: [Crise], paciente: Paciente? = nil) -> String {
     let a = analisar(crises)

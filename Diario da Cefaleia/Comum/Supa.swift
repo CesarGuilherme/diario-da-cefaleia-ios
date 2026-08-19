@@ -19,6 +19,15 @@ private let supabaseAnonKey = infoPlist?["SUPABASE_ANON_KEY"] as? String
 let faltaConfig = supabaseURLString == nil || supabaseAnonKey == nil
     || supabaseURLString?.isEmpty == true || supabaseAnonKey?.isEmpty == true
 
+/// Origin da webapp (sem barra no fim) — o iOS monta `/r/<id>` a partir daqui.
+/// Espelha `location.origin` de Relatorio.jsx.
+let publicReportBaseURL: String? = {
+    guard let s = infoPlist?["PUBLIC_REPORT_BASE_URL"] as? String else { return nil }
+    let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    return t.isEmpty ? nil : t
+}()
+
 // emitLocalSessionAsInitialSession: true evita o reportIssue "Initial session emitted
 // after attempting to refresh..." do supabase-swift — comportamento legado (false) sempre
 // dispara esse aviso; é a opção que a própria lib recomenda para silenciá-lo.
@@ -121,6 +130,38 @@ nonisolated struct Crise: Codable, Identifiable, Equatable {
             sonoHoras = d
         }
     }
+}
+
+// MARK: - Relatório público (link para o médico)
+
+/// Linha de `relatorios` — o `id` é o token da URL `/r/<id>`.
+nonisolated struct RelatorioPublico: Codable, Identifiable, Equatable {
+    var id: UUID
+    var pacienteId: UUID
+    var criadoEm: Date
+    var expiraEm: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case pacienteId = "paciente_id"
+        case criadoEm = "criado_em"
+        case expiraEm = "expira_em"
+    }
+}
+
+nonisolated struct RelatorioInput: Encodable {
+    var pacienteId: UUID
+    var dados: SnapshotRelatorio
+
+    enum CodingKeys: String, CodingKey {
+        case pacienteId = "paciente_id"
+        case dados
+    }
+}
+
+func urlRelatorioPublico(_ id: UUID) -> URL? {
+    guard let base = publicReportBaseURL else { return nil }
+    return URL(string: "\(base)/r/\(id.uuidString.lowercased())")
 }
 
 // MARK: - Escrita

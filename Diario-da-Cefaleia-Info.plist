@@ -11,6 +11,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>PUBLIC_REPORT_BASE_URL</key>
+	<string>https://diario-da-cefaleia.vercel.app</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>sb_publishable_sG_BUlErF9ZSBcsxSGJLgA_jP0SZBQt</string>
 	<key>SUPABASE_URL</key>
