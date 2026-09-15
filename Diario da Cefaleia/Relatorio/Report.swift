@@ -8,30 +8,30 @@
 
 import Foundation
 
-private struct GatilhoDef {
+nonisolated private struct GatilhoDef {
     let label: String
     let chave: String?  // nil = "Sono < 7h", que é numérico e não tem itens
 }
 
-private let DEFS: [GatilhoDef] = [
+nonisolated private let DEFS: [GatilhoDef] = [
     GatilhoDef(label: "Sono < 7h", chave: nil),
     GatilhoDef(label: "Estresse", chave: "Estresse"),
     GatilhoDef(label: "Mudança climática", chave: "Mudança climática"),
     GatilhoDef(label: "Alimentação", chave: "Alimentação"),
 ]
 
-private func presente(_ chave: String?, _ c: Crise) -> Bool {
+nonisolated private func presente(_ chave: String?, _ c: Crise) -> Bool {
     guard let chave else { return c.sonoHoras < 7 }
     return c.gatilhos.contains(chave)
 }
 
-/// Compara ignorando caixa e acento, para "Leite" e "leite" contarem como o mesmo item.
-private func chaveComparavel(_ s: String) -> String {
+/// Compara ignorando caixa e acento, para "Leite" e "leite" (e "César"/"Cesar") contarem iguais.
+nonisolated func chaveComparavel(_ s: String) -> String {
     s.trimmingCharacters(in: .whitespacesAndNewlines)
         .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)
 }
 
-struct Recorrente: Equatable, Identifiable {
+nonisolated struct Recorrente: Equatable, Identifiable {
     var item: String
     var n: Int
     var de: Int
@@ -40,7 +40,7 @@ struct Recorrente: Equatable, Identifiable {
 
 /// Itens que se repetem entre as crises de um gatilho — o "leite em 2 de 3".
 /// Conta uma vez por crise (repetir na mesma crise não vira recorrência).
-func recorrentes(_ crises: [Crise], _ gatilho: String?) -> [Recorrente] {
+nonisolated func recorrentes(_ crises: [Crise], _ gatilho: String?) -> [Recorrente] {
     guard let gatilho else { return [] }
     let comGatilho = crises.filter { presente(gatilho, $0) }
 
@@ -64,7 +64,7 @@ func recorrentes(_ crises: [Crise], _ gatilho: String?) -> [Recorrente] {
         .map { Recorrente(item: $0.item, n: $0.n, de: comGatilho.count) }
 }
 
-struct MesInfo: Equatable, Identifiable {
+nonisolated struct MesInfo: Equatable, Identifiable {
     var mes: String
     var com: Int
     var sem: Int
@@ -75,7 +75,7 @@ struct MesInfo: Equatable, Identifiable {
 /// Dias com e sem crise, mês a mês, do mês da primeira crise até o mês corrente
 /// (meses vazios no meio entram com 0 — é justamente o mês bom que o médico quer ver).
 /// ponytail: conta o dia do `inicio`; crise que atravessa a meia-noite conta 1 dia só.
-func porMes(_ crises: [Crise], hoje: Date = Date()) -> [MesInfo] {
+nonisolated func porMes(_ crises: [Crise], hoje: Date = Date()) -> [MesInfo] {
     guard !crises.isEmpty else { return [] }
     let cal = calendarioBR
 
@@ -109,7 +109,7 @@ func porMes(_ crises: [Crise], hoje: Date = Date()) -> [MesInfo] {
     return meses
 }
 
-struct DiaInfo: Equatable, Identifiable {
+nonisolated struct DiaInfo: Equatable, Identifiable {
     var dia: Date
     var n: Int
     var id: Date { dia }
@@ -117,7 +117,7 @@ struct DiaInfo: Equatable, Identifiable {
 
 /// Uma entrada por dia, da primeira crise até hoje. Dias sem crise entram com n=0
 /// para a linha mostrar o chão. Duas crises no mesmo dia somam (ao contrário de porMes).
-func porDia(_ crises: [Crise], hoje: Date = Date()) -> [DiaInfo] {
+nonisolated func porDia(_ crises: [Crise], hoje: Date = Date()) -> [DiaInfo] {
     guard !crises.isEmpty else { return [] }
     let cal = calendarioBR
     var conta: [Date: Int] = [:]
@@ -138,21 +138,21 @@ func porDia(_ crises: [Crise], hoje: Date = Date()) -> [DiaInfo] {
     return out
 }
 
-struct GatilhoAnalise: Equatable, Identifiable {
+nonisolated struct GatilhoAnalise: Equatable, Identifiable {
     var label: String
     var pct: Int
     var recorrentes: [Recorrente]
     var id: String { label }
 }
 
-struct Analise {
+nonisolated struct Analise {
     var gatilhos: [GatilhoAnalise]
     var insight: String
     var frequencia: Int
     var duracaoMedia: Int?
 }
 
-func analisar(_ crises: [Crise]) -> Analise {
+nonisolated func analisar(_ crises: [Crise]) -> Analise {
     let n = crises.count
     var gatilhos = DEFS.map { def -> GatilhoAnalise in
         let count = crises.filter { presente(def.chave, $0) }.count
@@ -226,7 +226,7 @@ nonisolated struct SnapshotCrise: Encodable, Equatable {
     }
 }
 
-func snapshotRelatorio(
+nonisolated func snapshotRelatorio(
     _ encerradas: [Crise], paciente: Paciente, hoje: Date = Date()
 ) -> SnapshotRelatorio {
     SnapshotRelatorio(
@@ -244,7 +244,7 @@ func snapshotRelatorio(
 }
 
 /// Texto compartilhado com o médico.
-func textoRelatorio(_ crises: [Crise], paciente: Paciente? = nil) -> String {
+nonisolated func textoRelatorio(_ crises: [Crise], paciente: Paciente? = nil) -> String {
     let a = analisar(crises)
     var linhas = ["Diário da Cefaléia — Relatório para o médico"]
 

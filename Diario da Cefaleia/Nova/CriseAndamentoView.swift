@@ -137,7 +137,7 @@ struct CriseAndamentoView: View {
             await anterior?.value
             var sintomas = diario.ativa?.sintomas ?? ativa.sintomas
             sintomas.alternar(s)
-            _ = await diario.atualizar(ativa.id, CrisePatch(sintomas: sintomas))
+            await diario.atualizar(ativa.id, CrisePatch(sintomas: sintomas))
         }
     }
 

@@ -6,9 +6,12 @@
 //
 
 import Auth
+import AuthenticationServices
 import Supabase
 import SwiftUI
 
+// Tem de estar nas Redirect URLs do Dashboard (além da URL da Vercel). Sem isso o
+// GoTrue descarta o redirectTo e o e-mail de confirmação abre o webapp.
 private let redirectURL = URL(string: "com.digitalbsb.Diario-da-Cefaleia://login-callback")!
 
 struct LoginView: View {
@@ -19,9 +22,14 @@ struct LoginView: View {
     @State private var senha = ""
     @State private var mensagem: (erro: Bool, texto: String)?
     @State private var ocupado = false
+    // Guardado entre onRequest e onCompletion: o bruto vai para o Supabase, só o hash
+    // vai para a Apple. Ver AppleID.swift.
+    @State private var nonceBruto = ""
 
     private var verbo: String { modo == .entrar ? "Entrar" : "Criar conta" }
-    private var formValido: Bool { !email.isEmpty && senha.count >= 6 }
+    private var formValido: Bool {
+        !email.isEmpty && (modo == .entrar ? !senha.isEmpty : senhaValida(senha))
+    }
 
     var body: some View {
         VStack(spacing: 18) {
@@ -32,6 +40,20 @@ struct LoginView: View {
             }
 
             VStack(spacing: 10) {
+                // HIG "Sign in with Apple: Displaying buttons": não menor que os outros
+                // botões de login, e acima deles — aqui, acima do Google.
+                SignInWithAppleButton(modo == .entrar ? .signIn : .signUp) { request in
+                    let nonce = gerarNonce()
+                    nonceBruto = nonce
+                    request.requestedScopes = [.email]  // minimização: o app não usa nome.
+                    request.nonce = sha256(nonce)
+                } onCompletion: { resultado in
+                    Task { await completarComApple(resultado) }
+                }
+                .signInWithAppleButtonStyle(.whiteOutline)
+                .frame(height: 52)
+                .clipShape(Capsule())
+
                 // "G" oficial fica pra quando houver asset — SF Symbol por ora.
                 Button {
                     Task { await entrarComGoogle() }
@@ -59,15 +81,21 @@ struct LoginView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         SectionLabel(texto: "E-mail")
                         TextField("voce@exemplo.com", text: $email)
-                            .textContentType(.emailAddress).keyboardType(.emailAddress)
+                            // .username, não .emailAddress: é o content type que pareia com
+                            // o `webcredentials` do associated domain — AutoFill só acha a
+                            // senha salva no Safari do webapp através dele.
+                            .textContentType(.username).keyboardType(.emailAddress)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .campo()
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         SectionLabel(texto: "Senha")
-                        SecureField("mínimo 6 caracteres", text: $senha)
+                        SecureField(modo == .cadastrar ? "Aa1! · 8 caracteres" : "", text: $senha)
                             .textContentType(modo == .entrar ? .password : .newPassword)
                             .campo()
+                        if modo == .cadastrar {
+                            ValidadorSenhaView(senha: senha)
+                        }
                     }
                     BotaoPrimario(
                         titulo: verbo, desabilitado: ocupado || !formValido,
@@ -79,6 +107,14 @@ struct LoginView: View {
                         .font(.system(size: 13)).multilineTextAlignment(.center)
                         .foregroundStyle(mensagem.erro ? Color(hex: 0xffb5b0) : Color(hex: 0xa9f0cd))
                 }
+
+                Button {
+                    Task { await recuperar() }
+                } label: {
+                    Text("Esqueci a senha")
+                        .font(.system(size: 13)).foregroundStyle(Color(hex: 0x8b7cfc))
+                }
+                .disabled(ocupado)
 
                 Button {
                     modo = modo == .entrar ? .cadastrar : .entrar
@@ -94,6 +130,31 @@ struct LoginView: View {
         .frame(maxWidth: 380)
     }
 
+    private func completarComApple(_ resultado: Result<ASAuthorization, Error>) async {
+        mensagem = nil
+        switch resultado {
+        case .success(let autorizacao):
+            guard let credencial = autorizacao.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credencial.identityToken,
+                let token = String(data: tokenData, encoding: .utf8)
+            else {
+                mensagem = (true, "Não foi possível concluir com a Apple.")
+                return
+            }
+            do {
+                try await supabase.auth.signInWithIdToken(
+                    credentials: .init(provider: .apple, idToken: token, nonce: nonceBruto))
+                salvarAppleUserID(credencial.user)
+            } catch {
+                mensagem = (true, error.localizedDescription)
+            }
+        case .failure(let error):
+            // Cancelar o painel da Apple não é erro — nem toda desistência precisa de mensagem.
+            if (error as? ASAuthorizationError)?.code == .canceled { return }
+            mensagem = (true, error.localizedDescription)
+        }
+    }
+
     private func entrarComGoogle() async {
         mensagem = nil
         do {
@@ -103,8 +164,31 @@ struct LoginView: View {
         }
     }
 
+    private func recuperar() async {
+        guard !email.isEmpty else {
+            mensagem = (true, "Informe o e-mail para redefinir a senha.")
+            return
+        }
+        mensagem = nil
+        ocupado = true
+        do {
+            try await supabase.auth.resetPasswordForEmail(email, redirectTo: redirectURL)
+            mensagem = (false, "Se esta conta existir, enviamos um link para redefinir a senha.")
+        } catch {
+            mensagem = (true, error.localizedDescription)
+        }
+        ocupado = false
+    }
+
     private func porEmail() async {
         mensagem = nil
+        if modo == .cadastrar {
+            let falta = falhasSenha(senha)
+            guard falta.isEmpty else {
+                mensagem = (true, "A senha precisa de \(falta.joined(separator: ", ")).")
+                return
+            }
+        }
         ocupado = true
         do {
             if modo == .entrar {
@@ -112,11 +196,46 @@ struct LoginView: View {
                 // No modo entrar, o authStateChanges do ContentView troca a tela sozinho.
             } else {
                 try await supabase.auth.signUp(email: email, password: senha, redirectTo: redirectURL)
-                mensagem = (false, "Confira seu e-mail para confirmar a conta.")
+                // Mesma frase para conta nova e e-mail já usado: o GoTrue devolve 200 nos dois
+                // casos e "confira seu e-mail" denunciaria quem já tem cadastro.
+                mensagem = (false, "Se este e-mail puder receber, enviamos um link. Já tem conta? Entre ou redefina a senha.")
             }
         } catch {
             mensagem = (true, error.localizedDescription)
         }
         ocupado = false
+    }
+}
+
+/// Checklist ao vivo das regras de senha. Espelha `ValidadorSenha` de Login.jsx.
+struct ValidadorSenhaView: View {
+    let senha: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            ForEach(REGRAS_SENHA) { regra in
+                let ok = regra.ok(senha)
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(ok ? Color(hex: 0x30d158, opacity: 0.28) : Color(hex: 0x787880, opacity: 0.18))
+                        Circle()
+                            .strokeBorder(ok ? Color(hex: 0x30d158, opacity: 0.45) : Color.white.opacity(0.12), lineWidth: 0.5)
+                        if ok {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(Color(hex: 0x30d158))
+                        }
+                    }
+                    .frame(width: 14, height: 14)
+                    Text(regra.label)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(ok ? Color(hex: 0xa9f0cd) : Color(hex: 0xebebf5, opacity: 0.38))
+                }
+                .animation(.easeInOut(duration: 0.15), value: ok)
+            }
+        }
+        .padding(.top, 4)
+        .accessibilityElement(children: .combine)
     }
 }

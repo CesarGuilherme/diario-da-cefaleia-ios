@@ -47,17 +47,24 @@ private func chipsDe(_ c: Crise) -> [ChipInfo] {
     return chips
 }
 
-private struct CriseCard: View {
+private struct CriseCard: View, Equatable {
     let c: Crise
     let apagar: () -> Void
     let editar: () -> Void
-    @State private var confirmando = false
+
+    // As closures impedem a síntese do ==; só a crise decide se o card mudou —
+    // editar/apagar uma crise deixa de reavaliar o body das outras N-1.
+    static func == (l: Self, r: Self) -> Bool { l.c == r.c }
 
     var body: some View {
+        // Uma passada só por avaliação do body; `indices` como id evita o Array +
+        // enumerated por render (chips são estáveis enquanto a crise não muda).
+        let chips = chipsDe(c)
         VStack(alignment: .leading, spacing: 9) {
             cabecalho
             FlowLayout(spacing: 6) {
-                ForEach(Array(chipsDe(c).enumerated()), id: \.offset) { _, ch in
+                ForEach(chips.indices, id: \.self) { i in
+                    let ch = chips[i]
                     Text(ch.label)
                         .font(.system(size: 12, weight: .semibold))
                         .lineLimit(1)
@@ -77,17 +84,9 @@ private struct CriseCard: View {
         .cartao(cornerRadius: 24, padding: 16)
         .swipeActions(edge: .trailing) {
             Button(action: editar) { Label("Editar", systemImage: "pencil") }.tint(.blue)
-            Button(role: .destructive) { confirmando = true } label: {
+            Button(role: .destructive, action: apagar) {
                 Label("Apagar", systemImage: "trash")
             }
-        }
-        .confirmationDialog(
-            "Apagar a crise de \(fmtDataHist(c.inicio))?",
-            isPresented: $confirmando, titleVisibility: .visible
-        ) {
-            Button("Apagar", role: .destructive, action: apagar)
-        } message: {
-            Text("Isso não pode ser desfeito.")
         }
     }
 
@@ -180,29 +179,52 @@ private struct EditarCriseView: View {
     }
 }
 
-struct HistoricoView: View {
+struct HistoricoView<Barra: View>: View {
     let diario: Diario
+    // A barra de paciente vem do chamador: como esta aba é um List (e não passa
+    // pelo AbaScroll), a composição da barra fica onde estão os handlers dela.
+    @ViewBuilder let barra: () -> Barra
     @State private var editando: Crise?
+    @State private var apagando: Crise?
 
     var body: some View {
-        // LazyVStack: os cards só se materializam ao entrar na tela — importa
-        // conforme o histórico cresce. As swipeActions dos cards precisam do
-        // `.swipeActionsContainer()` no ScrollView que envolve esta view (ver
-        // AbaScroll em ContentView.swift) para coordenar apagar/editar.
-        LazyVStack(alignment: .leading, spacing: 12) {
-            cabecalho
-            if !diario.carregandoCrises && diario.crises.isEmpty {
-                CardVazio(titulo: "Nenhuma crise registrada", sub: "Registre a primeira crise para começar.")
+        // List, não LazyVStack num ScrollView: reciclagem real de células e
+        // swipeActions nativas, sem precisar do `.swipeActionsContainer()`.
+        List {
+            Group {
+                barra()
+                    .padding(.top, 12)
+                cabecalho
+                if !diario.carregandoCrises && diario.crises.isEmpty {
+                    CardVazio(titulo: "Nenhuma crise registrada", sub: "Registre a primeira crise para começar.")
+                }
+                ForEach(diario.crises) { c in
+                    CriseCard(
+                        c: c, apagar: { apagando = c },
+                        editar: { editando = c })
+                    .equatable()
+                }
             }
-            ForEach(diario.crises) { c in
-                CriseCard(
-                    c: c, apagar: { Task { await diario.apagar(c.id) } },
-                    editar: { editando = c })
-            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
         }
-        .animation(.snappy, value: diario.crises.map(\.id))
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .animation(.snappy, value: diario.crises)
         .sheet(item: $editando) { c in
             EditarCriseView(diario: diario, crise: c) { editando = nil }
+        }
+        // Um diálogo só para a lista inteira (antes era um por card, e o @State do
+        // card invalidava o body dele a cada toque).
+        .confirmationDialog(
+            "Apagar a crise de \(apagando.map { fmtDataHist($0.inicio) } ?? "")?",
+            isPresented: Binding(get: { apagando != nil }, set: { if !$0 { apagando = nil } }),
+            titleVisibility: .visible, presenting: apagando
+        ) { c in
+            Button("Apagar", role: .destructive) { Task { await diario.apagar(c.id) } }
+        } message: { _ in
+            Text("Isso não pode ser desfeito.")
         }
     }
 

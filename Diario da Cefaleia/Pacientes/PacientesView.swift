@@ -111,7 +111,9 @@ struct BarraPacienteView: View {
         GlassEffectContainer(spacing: 8) {
             HStack(spacing: 8) {
                 Picker("Paciente", selection: Binding(get: { selecionado.id }, set: escolher)) {
-                    ForEach(pacientes) { p in Text(p.nome).tag(p.id) }
+                    ForEach(pacientes) { p in
+                        Text(p.souEu ? "\(p.nome) · você" : p.nome).tag(p.id)
+                    }
                 }
                 .pickerStyle(.menu)
                 .tint(.white)

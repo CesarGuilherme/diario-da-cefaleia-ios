@@ -6,7 +6,6 @@
 //  o card de compartilhar gera link público em `relatorios` e abre o share sheet.
 //
 
-import Auth
 import Charts
 import Supabase
 import SwiftUI
@@ -129,6 +128,9 @@ struct CrisesPorDiaView: View {
     // Calculado uma vez pelo chamador — antes era recalculado a cada frame de
     // arraste no gráfico, porque `porDia` rodava dentro deste `body`.
     let dias: [DiaInfo]
+    // Pré-filtrado junto com `dias` (fora do body): o `if d.n > 0` por marca é o
+    // que impedia o caminho vetorizado do Charts (WWDC24 10155).
+    let diasComCrise: [DiaInfo]
     @State private var selecionado: Date?
 
     var body: some View {
@@ -140,20 +142,12 @@ struct CrisesPorDiaView: View {
                     Text(legenda(dias))
                         .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.5))
                 }
-                Chart(dias) { d in
-                    LineMark(
-                        x: .value("Dia", d.dia, unit: .day),
-                        y: .value("Crises", d.n)
-                    )
-                    .foregroundStyle(Color(hex: 0xff6961))
-                    .interpolationMethod(.linear)
-                    if d.n > 0 {
-                        PointMark(
-                            x: .value("Dia", d.dia, unit: .day),
-                            y: .value("Crises", d.n)
-                        )
+                Chart {
+                    LinePlot(dias, x: .value("Dia", \.dia), y: .value("Crises", \.n))
+                        .foregroundStyle(Color(hex: 0xff6961))
+                        .interpolationMethod(.linear)
+                    PointPlot(diasComCrise, x: .value("Dia", \.dia), y: .value("Crises", \.n))
                         .foregroundStyle(Color(hex: 0xff453a))
-                    }
                 }
                 .chartYScale(domain: 0...maxN)
                 .chartYAxis {
@@ -233,7 +227,7 @@ struct CompartilharView: View {
                 if url != nil {
                     SecundariaLink("copiar", desabilitado: ocupado) { copiar() }
                     SecundariaLink("gerar novo", desabilitado: ocupado) {
-                        Task { _ = await gerar() }
+                        Task { await gerar() }
                     }
                     SecundariaLink("revogar", desabilitado: ocupado, perigo: true) {
                         confirmarRevogar = true
@@ -286,6 +280,7 @@ struct CompartilharView: View {
         ocupado = false
     }
 
+    @discardableResult
     private func gerar() async -> URL? {
         guard publicReportBaseURL != nil else {
             aviso = "Falta PUBLIC_REPORT_BASE_URL no Info.plist."
@@ -382,7 +377,7 @@ private struct ShareItem: Identifiable {
 
 /// `UIActivityViewController` — o equivalente iOS de `navigator.share({ url })`.
 private struct ActivityView: UIViewControllerRepresentable {
-    let items: [Any]
+    let items: [URL]
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
         UIActivityViewController(activityItems: items, applicationActivities: nil)
@@ -415,6 +410,13 @@ struct RelatorioView: View {
     let diario: Diario
     let paciente: Paciente
 
+    // analisar + porDia varrem o histórico inteiro (porDia aloca um DiaInfo por dia
+    // desde a primeira crise) — rodavam a cada avaliação deste body, no MainActor.
+    // Agora rodam uma vez por mudança de dados, fora da main thread (WWDC26 268).
+    @State private var analise: Analise?
+    @State private var dias: [DiaInfo] = []
+    @State private var diasComCrise: [DiaInfo] = []
+
     var body: some View {
         // `diario.encerradas` refiltra `crises` a cada leitura — uma ligação local
         // evita repetir isso quatro vezes neste body.
@@ -427,18 +429,20 @@ struct RelatorioView: View {
                 SemDadosView()
             }
 
-            if encerradas.count >= MIN_CRISES_RELATORIO {
-                let a = analisar(encerradas)
+            if encerradas.count >= MIN_CRISES_RELATORIO, let a = analise {
                 InsightView(insight: a.insight)
                 GatilhosView(gatilhos: a.gatilhos)
-                CrisesPorDiaView(dias: porDia(encerradas))
+                CrisesPorDiaView(dias: dias, diasComCrise: diasComCrise)
                 EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
                 CompartilharView(encerradas: encerradas, paciente: paciente)
             }
-
-            Button("Sair da conta") { Task { try? await supabase.auth.signOut() } }
-                .font(.system(size: 13)).foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
-                .padding(.top, 8)
+        }
+        .task(id: encerradas) {
+            guard encerradas.count >= MIN_CRISES_RELATORIO else { return }
+            (analise, dias, diasComCrise) = await Task { @concurrent in
+                let d = porDia(encerradas)
+                return (analisar(encerradas), d, d.filter { $0.n > 0 })
+            }.value
         }
     }
 }

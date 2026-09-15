@@ -65,7 +65,7 @@ private struct ErroConfigView: View {
 private enum EstadoSessao {
     case carregando
     case deslogado
-    case logado(userId: UUID)
+    case logado(User)
 }
 
 /// Continuação da launch screen do sistema: o UIKit derruba a launch screen real
@@ -79,10 +79,12 @@ private struct LaunchContinuationView: View {
     var body: some View {
         if visivel {
             ZStack {
-                Color("LaunchBackground")
-                Image("cefaleia-launch").resizable().scaledToFit()
+                Color("LaunchBackground").ignoresSafeArea()
+                Image("cefaleia-launch-ok")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(32)
             }
-            .ignoresSafeArea()
             .transition(.opacity)
             .task {
                 if reduceMotion {
@@ -98,6 +100,11 @@ private struct LaunchContinuationView: View {
 
 struct ContentView: View {
     @State private var estado: EstadoSessao = .carregando
+    // Separado do EstadoSessao, não uma dobra a mais nele: um TOKEN_REFRESHED no meio da
+    // recuperação não deve devolver a Diario por baixo do formulário de senha nova — só
+    // PASSWORD_RECOVERY liga isto, só SIGNED_OUT ou onOk desligam. Espelha o par
+    // sessao/recuperando de App.tsx, que são dois estados independentes pelo mesmo motivo.
+    @State private var recuperandoSenha = false
 
     var body: some View {
         Group {
@@ -109,21 +116,29 @@ struct ContentView: View {
                     Aurora()
                 case .deslogado:
                     ZStack { Aurora(); LoginView() }
-                case .logado(let userId):
-                    // .id força estado novo se o uid trocar sem passar por .deslogado —
-                    // @State ignora o initialValue depois da primeira inserção.
-                    DiarioRootView(userId: userId).id(userId)
+                case .logado(let user):
+                    if recuperandoSenha {
+                        ZStack { Aurora(); RedefinirSenhaView(onOk: { recuperandoSenha = false }) }
+                    } else {
+                        // .id força estado novo se o uid trocar sem passar por .deslogado —
+                        // @State ignora o initialValue depois da primeira inserção.
+                        DiarioRootView(user: user).id(user.id)
+                    }
                 }
             }
         }
         .task {
             guard !faltaConfig else { return }
-            for await (_, sessao) in supabase.auth.authStateChanges {
+            observarRevogacaoAppleID()
+            await checarRevogacaoAppleID()
+            for await (evento, sessao) in supabase.auth.authStateChanges {
+                if evento == .passwordRecovery { recuperandoSenha = true }
+                if evento == .signedOut { recuperandoSenha = false }
                 // emitLocalSessionAsInitialSession manda a sessão local direto, mesmo expirada,
                 // e só tenta o refresh depois em background — sem o isExpired aqui a UI piscaria
                 // "logado" antes do refresh falhar e derrubar de volta pro login.
                 if let sessao, !sessao.isExpired {
-                    estado = .logado(userId: sessao.user.id)
+                    estado = .logado(sessao.user)
                 } else if sessao == nil {
                     estado = .deslogado
                 }
@@ -139,20 +154,39 @@ struct ContentView: View {
 /// A casca é a mesma sempre: aurora, banner de erro e os dados do Diario.
 /// As abas são `TabView` nativo — Liquid Glass do sistema.
 private struct DiarioRootView: View {
-    let userId: UUID
+    let user: User
     @State private var diario: Diario
 
-    init(userId: UUID) {
-        self.userId = userId
-        _diario = State(initialValue: Diario(userId: userId))
+    init(user: User) {
+        self.user = user
+        _diario = State(initialValue: Diario(userId: user.id))
     }
+
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
-            Aurora(ativa: diario.ativa != nil)
-            TelefoneView(diario: diario)
+            AuroraFundo(diario: diario)
+            TelefoneView(user: user, diario: diario)
+        }
+        .task {
+            await diario.iniciarSync()
+            defer { diario.pararSync() }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(3_600))
+            }
+        }
+        .onChange(of: scenePhase) { _, fase in
+            if fase == .active { Task { await diario.voltarAoPrimeiroPlano() } }
         }
     }
+}
+
+/// Só este body lê `diario.ativa` para a aurora — quando a crise abre/fecha, a
+/// invalidação fica confinada aqui em vez de reavaliar a casca inteira da aba.
+private struct AuroraFundo: View {
+    let diario: Diario
+    var body: some View { Aurora(ativa: diario.ativa != nil) }
 }
 
 private enum FormPacienteAlvo: Identifiable {
@@ -173,10 +207,11 @@ private enum FormPacienteAlvo: Identifiable {
 }
 
 private enum Aba: Hashable {
-    case nova, historico, relatorio
+    case nova, historico, relatorio, ajustes
 }
 
 private struct TelefoneView: View {
+    let user: User
     let diario: Diario
     @State private var tela: Aba = .nova
     @State private var editando: FormPacienteAlvo?
@@ -226,14 +261,30 @@ private struct TelefoneView: View {
                     }
 
                     Tab("Histórico", systemImage: "clock", value: Aba.historico) {
-                        AbaScroll(diario: diario, paciente: paciente, editando: $editando) {
-                            HistoricoView(diario: diario)
+                        // Fora do AbaScroll: o Histórico é um List (células recicladas,
+                        // swipe nativo) e List dentro de ScrollView não rola.
+                        ZStack {
+                            AuroraFundo(diario: diario)
+                            HistoricoView(diario: diario) {
+                                BarraPacienteView(
+                                    pacientes: diario.pacientes, selecionado: paciente,
+                                    escolher: diario.escolher,
+                                    onNovo: { editando = .novo },
+                                    onEditar: { editando = .existente(paciente) }
+                                )
+                            }
                         }
                     }
 
                     Tab("Relatório", systemImage: "chart.bar", value: Aba.relatorio) {
                         AbaScroll(diario: diario, paciente: paciente, editando: $editando) {
                             RelatorioView(diario: diario, paciente: paciente)
+                        }
+                    }
+
+                    Tab("Ajustes", systemImage: "gearshape", value: Aba.ajustes) {
+                        AbaScroll(diario: diario, paciente: paciente, editando: $editando, mostraBarra: false) {
+                            AjustesView(user: user, diario: diario)
                         }
                     }
                 }
@@ -250,6 +301,7 @@ private struct AbaScroll<Content: View>: View {
     let diario: Diario
     let paciente: Paciente
     @Binding var editando: FormPacienteAlvo?
+    var mostraBarra = true
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -257,15 +309,17 @@ private struct AbaScroll<Content: View>: View {
         // a aurora do ZStack de fora não passa. Repetir a aurora aqui dentro
         // é o jeito que funciona: um ZStack por página, não em volta do TabView.
         ZStack {
-            Aurora(ativa: diario.ativa != nil)
+            AuroraFundo(diario: diario)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    BarraPacienteView(
-                        pacientes: diario.pacientes, selecionado: paciente,
-                        escolher: diario.escolher,
-                        onNovo: { editando = .novo },
-                        onEditar: { editando = .existente(paciente) }
-                    )
+                    if mostraBarra {
+                        BarraPacienteView(
+                            pacientes: diario.pacientes, selecionado: paciente,
+                            escolher: diario.escolher,
+                            onNovo: { editando = .novo },
+                            onEditar: { editando = .existente(paciente) }
+                        )
+                    }
                     content()
                 }
                 .padding(.horizontal, 16)
@@ -274,9 +328,6 @@ private struct AbaScroll<Content: View>: View {
             }
             .scrollContentBackground(.hidden)
             .background(.clear)
-            // Sem isso, os `.swipeActions` do Histórico (editar/apagar) nunca disparam:
-            // fora de um `List`, é este modificador que coordena as ações de swipe.
-            .swipeActionsContainer()
         }
     }
 }

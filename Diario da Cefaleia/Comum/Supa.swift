@@ -12,17 +12,22 @@ import Supabase
 // Sem as chaves o app não funciona — mas precisa carregar para conseguir DIZER isso.
 // Um `fatalError` aqui derrubaria o processo antes da UI aparecer; quem mostra o erro
 // é a `ContentView`. A anon key é pública por design — quem protege os dados é a RLS.
-private let infoPlist = Bundle.main.infoDictionary
-private let supabaseURLString = infoPlist?["SUPABASE_URL"] as? String
-private let supabaseAnonKey = infoPlist?["SUPABASE_ANON_KEY"] as? String
+// Leitura tipada por chave em vez de guardar o infoDictionary ([String: Any] não é
+// Sendable — seria a primeira dor de uma migração ao language mode Swift 6).
+nonisolated private func infoString(_ chave: String) -> String? {
+    Bundle.main.object(forInfoDictionaryKey: chave) as? String
+}
 
-let faltaConfig = supabaseURLString == nil || supabaseAnonKey == nil
+nonisolated private let supabaseURLString = infoString("SUPABASE_URL")
+nonisolated private let supabaseAnonKey = infoString("SUPABASE_ANON_KEY")
+
+nonisolated let faltaConfig = supabaseURLString == nil || supabaseAnonKey == nil
     || supabaseURLString?.isEmpty == true || supabaseAnonKey?.isEmpty == true
 
 /// Origin da webapp (sem barra no fim) — o iOS monta `/r/<id>` a partir daqui.
 /// Espelha `location.origin` de Relatorio.jsx.
-let publicReportBaseURL: String? = {
-    guard let s = infoPlist?["PUBLIC_REPORT_BASE_URL"] as? String else { return nil }
+nonisolated let publicReportBaseURL: String? = {
+    guard let s = infoString("PUBLIC_REPORT_BASE_URL") else { return nil }
     let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
         .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     return t.isEmpty ? nil : t
@@ -42,16 +47,35 @@ let supabase = SupabaseClient(
 // MARK: - Modelos
 
 // Target isola no MainActor; Codable precisa ser nonisolated — o decode do PostgREST é @concurrent.
-nonisolated struct Paciente: Codable, Identifiable, Equatable, Hashable {
+nonisolated struct Paciente: Codable, Identifiable, Equatable, Hashable, SouEu {
     var id: UUID
     var nome: String
     var dataNascimento: String?  // 'YYYY-MM-DD', opcional — só alimenta a idade no relatório
+    var souEu: Bool
     var criadoEm: Date
 
     enum CodingKeys: String, CodingKey {
         case id, nome
         case dataNascimento = "data_nascimento"
+        case souEu = "sou_eu"
         case criadoEm = "criado_em"
+    }
+
+    init(id: UUID, nome: String, dataNascimento: String?, criadoEm: Date, souEu: Bool = false) {
+        self.id = id
+        self.nome = nome
+        self.dataNascimento = dataNascimento
+        self.souEu = souEu
+        self.criadoEm = criadoEm
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        nome = try c.decode(String.self, forKey: .nome)
+        dataNascimento = try c.decodeIfPresent(String.self, forKey: .dataNascimento)
+        souEu = try c.decodeIfPresent(Bool.self, forKey: .souEu) ?? false
+        criadoEm = try c.decode(Date.self, forKey: .criadoEm)
     }
 }
 
@@ -169,10 +193,12 @@ func urlRelatorioPublico(_ id: UUID) -> URL? {
 nonisolated struct PacienteInput: Encodable {
     var nome: String
     var dataNascimento: String?
+    var souEu: Bool? = nil
 
     enum CodingKeys: String, CodingKey {
         case nome
         case dataNascimento = "data_nascimento"
+        case souEu = "sou_eu"
     }
 
     // encode (não encodeIfPresent): nascimento vazio precisa gravar `null` explícito,
@@ -181,7 +207,17 @@ nonisolated struct PacienteInput: Encodable {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(nome, forKey: .nome)
         try c.encode(dataNascimento, forKey: .dataNascimento)
+        try c.encodeIfPresent(souEu, forKey: .souEu)
     }
+}
+
+nonisolated struct DefinirSouEuParams: Encodable {
+    let pid: UUID
+}
+
+nonisolated struct PacienteSouEuPatch: Encodable {
+    var souEu: Bool
+    enum CodingKeys: String, CodingKey { case souEu = "sou_eu" }
 }
 
 nonisolated struct NovaCriseInput: Encodable {
