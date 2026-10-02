@@ -12,7 +12,9 @@ import SwiftUI
 
 // Tem de estar nas Redirect URLs do Dashboard (além da URL da Vercel). Sem isso o
 // GoTrue descarta o redirectTo e o e-mail de confirmação abre o webapp.
-private let redirectURL = URL(string: "com.digitalbsb.Diario-da-Cefaleia://login-callback")!
+// Lido do bundle, não fixo: o target Mac tem seu próprio bundle id e esquema de URL
+// (ver Info.plist do target), então cada app volta para si mesmo depois do login.
+private let redirectURL = URL(string: "\(Bundle.main.bundleIdentifier ?? "com.digitalbsb.Diario-da-Cefaleia")://login-callback")!
 
 struct LoginView: View {
     private enum Modo { case entrar, cadastrar }
@@ -84,15 +86,21 @@ struct LoginView: View {
                             // .username, não .emailAddress: é o content type que pareia com
                             // o `webcredentials` do associated domain — AutoFill só acha a
                             // senha salva no Safari do webapp através dele.
-                            .textContentType(.username).keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .textContentType(.username)
+                            #if os(iOS)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            #endif
+                            .autocorrectionDisabled()
                             .campo()
+                            .accessibilityLabel("E-mail")
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         SectionLabel(texto: "Senha")
                         SecureField(modo == .cadastrar ? "Aa1! · 8 caracteres" : "", text: $senha)
                             .textContentType(modo == .entrar ? .password : .newPassword)
                             .campo()
+                            .accessibilityLabel("Senha")
                         if modo == .cadastrar {
                             ValidadorSenhaView(senha: senha)
                         }
@@ -146,12 +154,12 @@ struct LoginView: View {
                     credentials: .init(provider: .apple, idToken: token, nonce: nonceBruto))
                 salvarAppleUserID(credencial.user)
             } catch {
-                mensagem = (true, error.localizedDescription)
+                mensagem = (true, mensagemErro(error, senao: "Não foi possível entrar com a Apple. Tente de novo."))
             }
         case .failure(let error):
             // Cancelar o painel da Apple não é erro — nem toda desistência precisa de mensagem.
             if (error as? ASAuthorizationError)?.code == .canceled { return }
-            mensagem = (true, error.localizedDescription)
+            mensagem = (true, mensagemErro(error, senao: "Não foi possível entrar com a Apple. Tente de novo."))
         }
     }
 
@@ -160,7 +168,7 @@ struct LoginView: View {
         do {
             try await supabase.auth.signInWithOAuth(provider: .google, redirectTo: redirectURL)
         } catch {
-            mensagem = (true, error.localizedDescription)
+            mensagem = (true, mensagemErro(error, senao: "Não foi possível entrar com o Google. Tente de novo."))
         }
     }
 
@@ -175,7 +183,7 @@ struct LoginView: View {
             try await supabase.auth.resetPasswordForEmail(email, redirectTo: redirectURL)
             mensagem = (false, "Se esta conta existir, enviamos um link para redefinir a senha.")
         } catch {
-            mensagem = (true, error.localizedDescription)
+            mensagem = (true, mensagemErro(error, senao: "Não foi possível enviar o e-mail. Tente de novo."))
         }
         ocupado = false
     }
@@ -201,7 +209,10 @@ struct LoginView: View {
                 mensagem = (false, "Se este e-mail puder receber, enviamos um link. Já tem conta? Entre ou redefina a senha.")
             }
         } catch {
-            mensagem = (true, error.localizedDescription)
+            let senao = modo == .entrar
+                ? "Não foi possível entrar. Tente de novo."
+                : "Não foi possível criar a conta. Tente de novo."
+            mensagem = (true, mensagemErro(error, senao: senao))
         }
         ocupado = false
     }

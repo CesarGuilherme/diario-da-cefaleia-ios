@@ -25,6 +25,7 @@ struct RedefinirSenhaView: View {
                 SecureField("Aa1! · 8 caracteres", text: $senha)
                     .textContentType(.newPassword)
                     .campo()
+                    .accessibilityLabel("Senha")
                 ValidadorSenhaView(senha: senha)
             }
 
@@ -56,7 +57,7 @@ struct RedefinirSenhaView: View {
             _ = try await supabase.auth.update(user: UserAttributes(password: senha))
             onOk()
         } catch {
-            mensagem = (true, error.localizedDescription)
+            mensagem = (true, mensagemErro(error, senao: "Não foi possível alterar a senha. Tente de novo."))
         }
         ocupado = false
     }

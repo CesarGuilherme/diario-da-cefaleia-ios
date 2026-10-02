@@ -7,9 +7,24 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
 
 let textoFraco = Color(hex: 0xebebf5, opacity: 0.55)
 let textoFraco2 = Color(hex: 0xebebf5, opacity: 0.45)
+
+/// Copia texto para a área de transferência — `UIPasteboard` no iOS, `NSPasteboard` no Mac.
+func copiarParaAreaDeTransferencia(_ texto: String) {
+    #if os(iOS)
+    UIPasteboard.general.string = texto
+    #else
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(texto, forType: .string)
+    #endif
+}
 
 // MARK: - Layout de quebra de linha (chips de Sintomas, chips do Histórico)
 
@@ -103,24 +118,46 @@ private struct CampoStyle: ViewModifier {
 
 // MARK: - Tipografia
 
+/// Tamanho de desenho que acompanha o Dynamic Type. `Font.system(size:)` sozinho
+/// não escala; `@ScaledMetric` usa o estilo de texto como régua.
+private struct FonteEscalada: ViewModifier {
+    var peso: Font.Weight
+    @ScaledMetric private var tamanho: CGFloat
+
+    init(_ tamanho: CGFloat, peso: Font.Weight, relativaA estilo: Font.TextStyle) {
+        self.peso = peso
+        _tamanho = ScaledMetric(wrappedValue: tamanho, relativeTo: estilo)
+    }
+
+    func body(content: Content) -> some View {
+        content.font(.system(size: tamanho, weight: peso))
+    }
+}
+
+extension View {
+    func fonte(_ tamanho: CGFloat, peso: Font.Weight = .regular, relativaA estilo: Font.TextStyle) -> some View {
+        modifier(FonteEscalada(tamanho, peso: peso, relativaA: estilo))
+    }
+}
+
 struct Titulo: View {
     let texto: String
     var body: some View {
-        Text(texto).font(.system(size: 30, weight: .bold)).tracking(0.2)
+        Text(texto).fonte(30, peso: .bold, relativaA: .title).tracking(0.2)
     }
 }
 
 struct SubEyebrow: View {
     let texto: String
     var body: some View {
-        Text(texto).font(.system(size: 13, weight: .medium)).foregroundStyle(textoFraco)
+        Text(texto).fonte(13, peso: .medium, relativaA: .footnote).foregroundStyle(textoFraco)
     }
 }
 
 struct Legenda: View {
     let texto: String
     var body: some View {
-        Text(texto).font(.system(size: 12)).foregroundStyle(textoFraco2)
+        Text(texto).fonte(12, relativaA: .caption).foregroundStyle(textoFraco2)
             .multilineTextAlignment(.center).frame(maxWidth: .infinity)
     }
 }
@@ -129,7 +166,7 @@ struct SectionLabel: View {
     let texto: String
     var body: some View {
         Text(texto.uppercased())
-            .font(.system(size: 12, weight: .semibold))
+            .fonte(12, peso: .semibold, relativaA: .caption)
             .tracking(0.8)
             .foregroundStyle(textoFraco)
     }
@@ -150,6 +187,8 @@ struct Segmented: View {
     var spacing: CGFloat = 5
     let onChange: (String) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         // Como na BarraPacienteView: o container faz os vidros vizinhos amostrarem o
         // fundo juntos e se fundirem, em vez de cada cápsula desfocar por conta própria.
@@ -161,15 +200,16 @@ struct Segmented: View {
                         onChange(o)
                     } label: {
                         Text(o)
-                            .font(.system(size: fontSize, weight: sel ? .bold : .semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .frame(maxWidth: .infinity)
+                            .fonte(fontSize, peso: sel ? .bold : .semibold, relativaA: .subheadline)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
                             .padding(.vertical, verticalPadding)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .foregroundStyle(sel ? .black : .white)
                     .buttonStyle(.glass(sel ? .regular.tint(cores?[o] ?? corNeutra) : .regular))
-                    .animation(.snappy, value: valor)
+                    .accessibilityAddTraits(sel ? .isSelected : [])
+                    .animation(reduceMotion ? nil : .snappy, value: valor)
                 }
             }
         }
@@ -184,16 +224,20 @@ struct Chip: View {
     let selecionado: Bool
     let onTap: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         Button(action: onTap) {
             Text(label)
-                .font(.system(size: 14, weight: .semibold))
+                .fonte(14, peso: .semibold, relativaA: .subheadline)
                 .padding(.horizontal, 15)
                 .padding(.vertical, 8)
+                .frame(minHeight: 44)
         }
         .foregroundStyle(selecionado ? .white : Color(hex: 0xebebf5, opacity: 0.6))
         .buttonStyle(.glass(selecionado ? .regular.tint(Color(hex: 0x6c5ce7, opacity: 0.9)) : .regular))
-        .animation(.snappy, value: selecionado)
+        .accessibilityAddTraits(selecionado ? .isSelected : [])
+        .animation(reduceMotion ? nil : .snappy, value: selecionado)
     }
 }
 
@@ -208,10 +252,11 @@ struct BotaoPrimario: View {
     var body: some View {
         Button(action: acao) {
             Text(titulo)
-                .font(.system(size: 17, weight: .bold))
+                .fonte(17, peso: .bold, relativaA: .body)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(minHeight: 56)
         }
+        .buttonStyle(.plain)
         .foregroundStyle(verde ? Color(hex: 0x04250f) : .white)
         .background(
             LinearGradient(
@@ -236,13 +281,17 @@ struct BannerErro: View {
 
     var body: some View {
         if let erro {
-            Text("\(erro) — dispensar")
-                .font(.system(size: 13))
-                .foregroundStyle(Color(hex: 0xffb5b0))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16).padding(.vertical, 12)
-                .glassEffect(.regular.tint(Color(hex: 0xff453a)), in: .rect(cornerRadius: 16))
-                .onTapGesture(perform: dispensar)
+            Button(action: dispensar) {
+                Text("\(erro) — dispensar")
+                    .fonte(13, relativaA: .footnote)
+                    .foregroundStyle(Color(hex: 0xffb5b0))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+            }
+            .buttonStyle(.plain)
+            .glassEffect(.regular.tint(Color(hex: 0xff453a)), in: .rect(cornerRadius: 16))
+            .accessibilityLabel(erro)
+            .accessibilityHint("Dispensar")
         }
     }
 }

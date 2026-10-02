@@ -54,7 +54,9 @@ struct FormPacienteView: View {
             VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 6) {
                     SectionLabel(texto: "Nome")
-                    TextField("Ex.: Manu", text: $nome).campo()
+                    TextField("Ex.: Manu", text: $nome)
+                        .campo()
+                        .accessibilityLabel("Nome")
                 }
                 VStack(alignment: .leading, spacing: 6) {
                     SectionLabel(texto: "Nascimento (opcional)")
@@ -64,6 +66,7 @@ struct FormPacienteView: View {
                             in: ...Date(), displayedComponents: .date
                         )
                         .labelsHidden()
+                        .accessibilityLabel("Nascimento")
                         if nascimento != nil {
                             Button("Limpar") { nascimento = nil }
                                 .font(.system(size: 13)).foregroundStyle(Color(hex: 0x8b7cfc))

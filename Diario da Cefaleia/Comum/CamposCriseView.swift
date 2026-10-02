@@ -61,9 +61,12 @@ struct CamposCriseView: View {
             }
             .padding(.bottom, 2)
 
-            Slider(value: $form.sonoHoras, in: 3...12, step: 0.5)
-                .tint(Color(hex: 0x8b7cfc))
-                .padding(.bottom, 8)
+            Slider(value: $form.sonoHoras, in: 3...12, step: 0.5) {
+                Text("Sono (noite anterior)")
+            }
+            .tint(Color(hex: 0x8b7cfc))
+            .accessibilityValue(fmtSono(form.sonoHoras))
+            .padding(.bottom, 8)
 
             VStack(spacing: 2) {
                 ForEach(GATILHOS, id: \.valor) { g in
@@ -94,6 +97,7 @@ struct CamposCriseView: View {
                         prompt: Text(g.dica).foregroundStyle(textoFraco)
                     )
                     .campo()
+                    .accessibilityLabel("Detalhe de \(g.valor)")
                     Text("Separe por vírgula — é o que permite achar o item que se repete")
                         .font(.system(size: 11)).foregroundStyle(textoFraco2)
                 }
@@ -111,6 +115,7 @@ struct CamposCriseView: View {
             SectionLabel(texto: "Medicação")
             TextField("Ex.: Ibuprofeno 400 mg", text: $form.medicacao)
                 .campo()
+                .accessibilityLabel("Medicação")
         }
         .cartao()
     }

@@ -70,6 +70,7 @@ struct CriseAndamentoView: View {
                     Text(fmtDecorrido(decorrido * 1000))
                         .font(.system(size: 48, weight: .bold))
                         .monospacedDigit()
+                        .accessibilityLabel(rotuloDecorrido(decorrido * 1000))
                     Text("início às \(fmtHora(ativa.inicio))")
                         .font(.system(size: 14))
                         .foregroundStyle(.white.opacity(0.5))
@@ -114,6 +115,7 @@ struct CriseAndamentoView: View {
         VStack(alignment: .leading, spacing: 6) {
             SectionLabel(texto: "Medicação")
             TextField("Ex.: Ibuprofeno 400 mg", text: $medicacao)
+                .accessibilityLabel("Medicação")
                 .campo()
                 .focused($medicacaoFocada)
                 .onChange(of: medicacaoFocada) { _, focada in

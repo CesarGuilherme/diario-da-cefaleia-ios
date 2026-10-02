@@ -11,13 +11,21 @@ import Helpers
 import Supabase
 import SwiftUI
 
+// Divide a tela entre uma janela de Ajustes com abas (macOS) e a aba única do
+// iOS: .tudo mantém o comportamento de sempre; .perfil/.senha mostram só a parte.
+enum AjustesParte {
+    case tudo, perfil, senha
+}
+
 struct AjustesView: View {
     @State private var user: User
     let diario: Diario
+    var parte: AjustesParte = .tudo
 
-    init(user: User, diario: Diario) {
+    init(user: User, diario: Diario, parte: AjustesParte = .tudo) {
         _user = State(initialValue: user)
         self.diario = diario
+        self.parte = parte
     }
 
     var body: some View {
@@ -27,24 +35,31 @@ struct AjustesView: View {
                 Titulo(texto: "Ajustes")
             }
 
-            PerfilSecao(user: $user, diario: diario)
-            QuemSouEuSecao(user: user, diario: diario)
-            SenhaSecao(user: user)
+            if parte != .senha {
+                PerfilSecao(user: $user, diario: diario)
+                QuemSouEuSecao(user: user, diario: diario)
+            }
 
-            Button("Sair da conta") {
-                Task {
-                    do {
-                        try await supabase.auth.signOut(scope: .local)
-                    } catch {
-                        diario.erro = error.localizedDescription
+            if parte != .perfil {
+                SenhaSecao(user: user)
+            }
+
+            if parte != .senha {
+                Button("Sair da conta") {
+                    Task {
+                        do {
+                            try await supabase.auth.signOut(scope: .local)
+                        } catch {
+                            diario.erro = mensagemErro(error, senao: "Não foi possível sair. Tente de novo.")
+                        }
                     }
                 }
-            }
-            .font(.system(size: 13))
-            .foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
-            .frame(maxWidth: .infinity)
+                .font(.system(size: 13))
+                .foregroundStyle(Color(hex: 0xebebf5, opacity: 0.45))
+                .frame(maxWidth: .infinity)
 
-            ExcluirContaSecao(user: user, diario: diario)
+                ExcluirContaSecao(user: user, diario: diario)
+            }
         }
     }
 }
@@ -92,6 +107,7 @@ private struct PerfilSecao: View {
             TextField("Como podemos te chamar", text: $nome)
                 .textContentType(.name)
                 .campo()
+                .accessibilityLabel("Seu nome")
                 .onChange(of: nome) { _, _ in msg = nil }
             Text(avisoNome)
                 .font(.system(size: 13)).foregroundStyle(textoFraco)
@@ -114,7 +130,7 @@ private struct PerfilSecao: View {
             }
             msg = (false, "Nome salvo.")
         } catch {
-            msg = (true, error.localizedDescription)
+            msg = (true, mensagemErro(error))
         }
         ocupado = false
     }
@@ -189,7 +205,9 @@ private struct SenhaSecao: View {
             if temSenha(user) {
                 TextField("", text: .constant(user.email ?? ""))
                     .textContentType(.username)
+                    #if os(iOS)
                     .textInputAutocapitalization(.never)
+                    #endif
                     .autocorrectionDisabled()
                     .frame(width: 1, height: 1)
                     .opacity(0.01)
@@ -199,12 +217,14 @@ private struct SenhaSecao: View {
                     SecureField("", text: $atual)
                         .textContentType(.password)
                         .campo()
+                        .accessibilityLabel("Senha atual")
                 }
                 VStack(alignment: .leading, spacing: 6) {
                     SectionLabel(texto: "Nova senha")
                     SecureField("Aa1! · 8 caracteres", text: $nova)
                         .textContentType(.newPassword)
                         .campo()
+                        .accessibilityLabel("Nova senha")
                     ValidadorSenhaView(senha: nova)
                 }
                 BotaoPrimario(
@@ -240,7 +260,7 @@ private struct SenhaSecao: View {
             nova = ""
             msg = (false, "Senha alterada.")
         } catch {
-            msg = (true, error.localizedDescription)
+            msg = (true, mensagemErro(error, senao: "Não foi possível alterar a senha. Tente de novo."))
         }
         ocupado = false
     }
@@ -302,7 +322,7 @@ private struct ExcluirContaSecao: View {
             try await supabase.auth.signOut(scope: .local)
         } catch {
             ocupado = false
-            msg = (true, "Não foi possível excluir a conta: \(error.localizedDescription)")
+            msg = (true, mensagemErro(error, senao: "Não foi possível excluir a conta. Tente de novo."))
         }
     }
 }

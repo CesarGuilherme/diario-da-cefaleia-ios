@@ -186,6 +186,7 @@ struct HistoricoView<Barra: View>: View {
     @ViewBuilder let barra: () -> Barra
     @State private var editando: Crise?
     @State private var apagando: Crise?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         // List, não LazyVStack num ScrollView: reciclagem real de células e
@@ -211,7 +212,7 @@ struct HistoricoView<Barra: View>: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .animation(.snappy, value: diario.crises)
+        .animation(reduceMotion ? nil : .snappy, value: diario.crises)
         .sheet(item: $editando) { c in
             EditarCriseView(diario: diario, crise: c) { editando = nil }
         }

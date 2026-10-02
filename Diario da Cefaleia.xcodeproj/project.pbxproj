@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DB246503306C009E00F1C9C1 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = DB246502306C009E00F1C9C1 /* Supabase */; };
+		DBD6F838306FF06300832CC1 /* cefaleia-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */; };
 		DBE5A003302C9F00008A0003 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = DBE5A002302C9F00008A0002 /* Supabase */; };
 		DBED17A2302E716300BF1E69 /* cefaleia-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */; };
 /* End PBXBuildFile section */
@@ -22,12 +24,43 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DB01C32F306BF50D0032E74A /* Diario da Cefaleia Mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diario da Cefaleia Mac.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB01C33F306BF6690032E74A /* Diario-da-Cefaleia-Mac-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Diario-da-Cefaleia-Mac-Info.plist"; sourceTree = "<group>"; };
 		DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Diario da Cefaleia.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Diario da Cefaleia Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "cefaleia-icon.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DB246506306C075200F1C9C1 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia Mac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/ContentView.swift,
+				App/Diario_da_CefaleiaApp.swift,
+				Assets.xcassets,
+				Comum/CamposCriseView.swift,
+				Comum/Diario.swift,
+				Comum/Erro.swift,
+				Comum/Format.swift,
+				Comum/Supa.swift,
+				Comum/Sync.swift,
+				Comum/Tokens.swift,
+				Comum/UI.swift,
+				Historico/HistoricoView.swift,
+				Login/AjustesView.swift,
+				Login/AppleID.swift,
+				Login/Conta.swift,
+				Login/LoginView.swift,
+				Login/RedefinirSenhaView.swift,
+				Login/Senha.swift,
+				Nova/CriseAndamentoView.swift,
+				Nova/NovaCriseView.swift,
+				Pacientes/PacientesView.swift,
+				Relatorio/RelatorioView.swift,
+				Relatorio/Report.swift,
+			);
+			target = DB01C32E306BF50D0032E74A /* Diario da Cefaleia Mac */;
+		};
 		DBF93BD6302C9A6D008E5F77 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -38,10 +71,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		DB01C330306BF50D0032E74A /* Diario da Cefaleia Mac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Diario da Cefaleia Mac";
+			sourceTree = "<group>";
+		};
 		DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				DBF93BD6302C9A6D008E5F77 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia" target */,
+				DB246506306C075200F1C9C1 /* Exceptions for "Diario da Cefaleia" folder in "Diario da Cefaleia Mac" target */,
 			);
 			path = "Diario da Cefaleia";
 			sourceTree = "<group>";
@@ -54,6 +93,12 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		DB01C32C306BF50D0032E74A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				DB246503306C009E00F1C9C1 /* Supabase in Frameworks */,
+			);
+		};
 		DB4F6BE7302B6D590014AC08 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
@@ -68,13 +113,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DB01C33A306BF5960032E74A /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		DB246501306C006200F1C9C1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		DB4F6BE1302B6D580014AC08 = {
 			isa = PBXGroup;
 			children = (
+				DB01C33F306BF6690032E74A /* Diario-da-Cefaleia-Mac-Info.plist */,
 				DB4F6BEC302B6D590014AC08 /* Diario da Cefaleia */,
 				DB5BBF76302C9B03006F0DEA /* Diario da Cefaleia Tests */,
 				DBED17A1302E716300BF1E69 /* cefaleia-icon.icon */,
+				DB01C330306BF50D0032E74A /* Diario da Cefaleia Mac */,
 				DB4F6BEB302B6D590014AC08 /* Products */,
+				DB01C33A306BF5960032E74A /* Shared */,
+				DB246501306C006200F1C9C1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -83,6 +146,7 @@
 			children = (
 				DB4F6BEA302B6D590014AC08 /* Diario da Cefaleia.app */,
 				DB5BBF75302C9B03006F0DEA /* Diario da Cefaleia Tests.xctest */,
+				DB01C32F306BF50D0032E74A /* Diario da Cefaleia Mac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,6 +154,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		DB01C32E306BF50D0032E74A /* Diario da Cefaleia Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB01C337306BF5100032E74A /* Build configuration list for PBXNativeTarget "Diario da Cefaleia Mac" */;
+			buildPhases = (
+				DB01C32B306BF50D0032E74A /* Sources */,
+				DB01C32C306BF50D0032E74A /* Frameworks */,
+				DB01C32D306BF50D0032E74A /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				DB01C330306BF50D0032E74A /* Diario da Cefaleia Mac */,
+			);
+			name = "Diario da Cefaleia Mac";
+			packageProductDependencies = (
+				DB246502306C009E00F1C9C1 /* Supabase */,
+			);
+			productName = "Diario da Cefaleia Mac";
+			productReference = DB01C32F306BF50D0032E74A /* Diario da Cefaleia Mac.app */;
+			productType = "com.apple.product-type.application";
+		};
 		DB4F6BE9302B6D590014AC08 /* Diario da Cefaleia */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB4F6BF7302B6D5C0014AC08 /* Build configuration list for PBXNativeTarget "Diario da Cefaleia" */;
@@ -142,6 +227,9 @@
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+					DB01C32E306BF50D0032E74A = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					DB4F6BE9302B6D590014AC08 = {
 						CreatedOnToolsVersion = 27.0;
 					};
@@ -170,11 +258,18 @@
 			targets = (
 				DB4F6BE9302B6D590014AC08 /* Diario da Cefaleia */,
 				DB5BBF74302C9B02006F0DEA /* Diario da Cefaleia Tests */,
+				DB01C32E306BF50D0032E74A /* Diario da Cefaleia Mac */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		DB01C32D306BF50D0032E74A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				DBD6F838306FF06300832CC1 /* cefaleia-icon.icon in Resources */,
+			);
+		};
 		DB4F6BE8302B6D590014AC08 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
@@ -189,6 +284,11 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DB01C32B306BF50D0032E74A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		DB4F6BE6302B6D590014AC08 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -210,6 +310,108 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		DB01C338306BF5100032E74A /* Debug configuration for PBXNativeTarget "Diario da Cefaleia Mac" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia Mac/Diario da Cefaleia Mac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diario-da-Cefaleia-Mac-Info.plist";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia-Mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		DB01C339306BF5100032E74A /* Release configuration for PBXNativeTarget "Diario da Cefaleia Mac" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "cefaleia-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Diario da Cefaleia Mac/Diario da Cefaleia Mac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Diario-da-Cefaleia-Mac-Info.plist";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia-Mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		DB4F6BF5302B6D5C0014AC08 /* Debug configuration for PBXProject "Diario da Cefaleia" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -341,9 +543,21 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -358,7 +572,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -378,9 +594,21 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6UNZ5TS4P7;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Diario-da-Cefaleia-Info.plist";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -395,7 +623,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.digitalbsb.Diario-da-Cefaleia";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -466,6 +696,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DB01C337306BF5100032E74A /* Build configuration list for PBXNativeTarget "Diario da Cefaleia Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB01C338306BF5100032E74A /* Debug configuration for PBXNativeTarget "Diario da Cefaleia Mac" */,
+				DB01C339306BF5100032E74A /* Release configuration for PBXNativeTarget "Diario da Cefaleia Mac" */,
+			);
+			defaultConfigurationName = Release;
+		};
 		DB4F6BE5302B6D580014AC08 /* Build configuration list for PBXProject "Diario da Cefaleia" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -500,10 +738,17 @@
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.5.1;
 			};
+			traits = (
+			);
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		DB246502306C009E00F1C9C1 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
 		DBE5A002302C9F00008A0002 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DBE5A001302C9F00008A0001 /* XCRemoteSwiftPackageReference "supabase-swift" */;

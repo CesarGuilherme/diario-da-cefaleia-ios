@@ -56,14 +56,14 @@ nonisolated func checarRevogacaoAppleID() async {
 }
 
 /// Com o app aberto, a Apple avisa por notificação em vez de esperar o próximo launch.
-nonisolated func observarRevogacaoAppleID() {
-    NotificationCenter.default.addObserver(
-        forName: ASAuthorizationAppleIDProvider.credentialRevokedNotification,
-        object: nil, queue: .main
-    ) { _ in
-        Task {
-            UserDefaults.standard.removeObject(forKey: chaveAppleUserID)
-            try? await supabase.auth.signOut(scope: .local)
-        }
+/// Quem chama é o `.task` da casca: `addObserver(forName:using:)` devolve um token que
+/// precisa ficar retido, e descartá-lo desliga a escuta na hora. O async sequence vive
+/// enquanto o task viver e morre com ele.
+func escutarRevogacaoAppleID() async {
+    let notas = NotificationCenter.default.notifications(
+        named: ASAuthorizationAppleIDProvider.credentialRevokedNotification)
+    for await _ in notas {
+        UserDefaults.standard.removeObject(forKey: chaveAppleUserID)
+        try? await supabase.auth.signOut(scope: .local)
     }
 }

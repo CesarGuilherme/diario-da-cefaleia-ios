@@ -147,6 +147,12 @@ struct ReportTests {
         #expect(fmtDuracao(120) == "2h")
         #expect(fmtSono(6.5) == "6h30")
         #expect(fmtSono(8) == "8h")
+        #expect(rotuloDecorrido(0) == "0 segundos")
+        #expect(rotuloDecorrido(5_000) == "5 segundos")
+        #expect(rotuloDecorrido(60_000) == "1 minuto")
+        #expect(rotuloDecorrido(65_000) == "1 minuto e 5 segundos")
+        #expect(rotuloDecorrido(Double((2 * 3600 + 5 * 60) * 1000)) == "2 horas e 5 minutos")
+        #expect(rotuloDecorrido(Double(2 * 3600 * 1000)) == "2 horas")
     }
 
     @Test("datas pt-BR no formato do design (o ICU insere um \"de\" que o iOS não tem)")

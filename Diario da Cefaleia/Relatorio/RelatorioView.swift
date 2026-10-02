@@ -9,7 +9,6 @@
 import Charts
 import Supabase
 import SwiftUI
-import UIKit
 
 /// Crises encerradas necessárias para o relatório dizer algo — regra única, mesma da web.
 let MIN_CRISES_RELATORIO = 2
@@ -179,7 +178,6 @@ struct CompartilharView: View {
     @State private var ocupado = true
     @State private var aviso: String?
     @State private var confirmarRevogar = false
-    @State private var shareItem: ShareItem?
 
     private var url: URL? { link.flatMap { urlRelatorioPublico($0.id) } }
 
@@ -206,17 +204,20 @@ struct CompartilharView: View {
                     .padding(.top, 8)
             }
 
-            Button {
-                Task { await enviar() }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.arrow.up")
-                    Text(url == nil ? "Gerar link e enviar" : "Enviar link ao médico")
+            Group {
+                if let url {
+                    ShareLink(item: url) {
+                        botaoEnviarLabel(titulo: "Enviar link ao médico")
+                    }
+                } else {
+                    Button {
+                        Task { await gerar() }
+                    } label: {
+                        botaoEnviarLabel(titulo: "Gerar link e enviar")
+                    }
                 }
-                .font(.system(size: 16, weight: .bold))
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
             }
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .glassEffect(.regular.interactive(), in: .capsule)
             .disabled(ocupado)
@@ -256,10 +257,16 @@ struct CompartilharView: View {
             Button("Revogar", role: .destructive) { Task { await revogar() } }
             Button("Cancelar", role: .cancel) {}
         }
-        .sheet(item: $shareItem) { item in
-            ActivityView(items: [item.url])
-                .presentationDetents([.medium, .large])
+    }
+
+    private func botaoEnviarLabel(titulo: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "square.and.arrow.up")
+            Text(titulo)
         }
+        .font(.system(size: 16, weight: .bold))
+        .frame(maxWidth: .infinity)
+        .frame(height: 54)
     }
 
     private func carregar() async {
@@ -275,7 +282,7 @@ struct CompartilharView: View {
             link = rows.first.flatMap { $0.expiraEm < Date() ? nil : $0 }
         } catch {
             link = nil
-            aviso = error.localizedDescription
+            aviso = mensagemErro(error, senao: "Não foi possível carregar o link. Tente de novo.")
         }
         ocupado = false
     }
@@ -306,26 +313,19 @@ struct CompartilharView: View {
             link = criado
             return urlRelatorioPublico(criado.id)
         } catch {
-            aviso = error.localizedDescription
+            aviso = mensagemErro(error, senao: "Não foi possível gerar o link. Tente de novo.")
             return nil
         }
     }
 
-    private func enviar() async {
-        let alvo: URL?
-        if let url { alvo = url } else { alvo = await gerar() }
-        guard let alvo else { return }
-        shareItem = ShareItem(url: alvo)
-    }
-
     private func copiar() {
         guard let url else { return }
-        UIPasteboard.general.string = url.absoluteString
+        copiarParaAreaDeTransferencia(url.absoluteString)
         aviso = "Link copiado."
     }
 
     private func copiarTexto() {
-        UIPasteboard.general.string = textoRelatorio(encerradas, paciente: paciente)
+        copiarParaAreaDeTransferencia(textoRelatorio(encerradas, paciente: paciente))
         aviso = "Relatório copiado como texto."
     }
 
@@ -337,7 +337,7 @@ struct CompartilharView: View {
             self.link = nil
             aviso = nil
         } catch {
-            aviso = error.localizedDescription
+            aviso = mensagemErro(error, senao: "Não foi possível revogar o link. Tente de novo.")
         }
         ocupado = false
     }
@@ -366,24 +366,9 @@ private struct SecundariaLink: View {
         .buttonStyle(.plain)
         .disabled(desabilitado)
         .opacity(desabilitado ? 0.5 : 1)
-        .padding(.horizontal, 8).padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .frame(minHeight: 44)
     }
-}
-
-private struct ShareItem: Identifiable {
-    let id = UUID()
-    let url: URL
-}
-
-/// `UIActivityViewController` — o equivalente iOS de `navigator.share({ url })`.
-private struct ActivityView: UIViewControllerRepresentable {
-    let items: [URL]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct CabecalhoRelatorioView: View {
@@ -409,6 +394,9 @@ struct SemDadosView: View {
 struct RelatorioView: View {
     let diario: Diario
     let paciente: Paciente
+    // Painel do Mac (Painel.tsx no web): gatilhos à esquerda, estatísticas empilhadas
+    // com o gráfico à direita. No telefone tudo fica numa coluna só, nesta ordem.
+    var desktop = false
 
     // analisar + porDia varrem o histórico inteiro (porDia aloca um DiaInfo por dia
     // desde a primeira crise) — rodavam a cada avaliação deste body, no MainActor.
@@ -431,9 +419,19 @@ struct RelatorioView: View {
 
             if encerradas.count >= MIN_CRISES_RELATORIO, let a = analise {
                 InsightView(insight: a.insight)
-                GatilhosView(gatilhos: a.gatilhos)
-                CrisesPorDiaView(dias: dias, diasComCrise: diasComCrise)
-                EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
+                if desktop {
+                    HStack(alignment: .top, spacing: 14) {
+                        GatilhosView(gatilhos: a.gatilhos)
+                        VStack(spacing: 14) {
+                            EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
+                            CrisesPorDiaView(dias: dias, diasComCrise: diasComCrise)
+                        }
+                    }
+                } else {
+                    GatilhosView(gatilhos: a.gatilhos)
+                    CrisesPorDiaView(dias: dias, diasComCrise: diasComCrise)
+                    EstatisticasView(frequencia: a.frequencia, duracaoMedia: a.duracaoMedia)
+                }
                 CompartilharView(encerradas: encerradas, paciente: paciente)
             }
         }

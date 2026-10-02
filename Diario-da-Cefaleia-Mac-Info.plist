@@ -7,7 +7,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.digitalbsb.Diario-da-Cefaleia</string>
+				<string>com.digitalbsb.Diario-da-Cefaleia-Mac</string>
 			</array>
 		</dict>
 	</array>

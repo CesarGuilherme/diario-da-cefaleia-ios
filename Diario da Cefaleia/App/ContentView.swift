@@ -129,8 +129,9 @@ struct ContentView: View {
         }
         .task {
             guard !faltaConfig else { return }
-            observarRevogacaoAppleID()
             await checarRevogacaoAppleID()
+            // Em paralelo com o loop de sessão: os dois só acabam quando o task cancela.
+            async let revogacao: Void = escutarRevogacaoAppleID()
             for await (evento, sessao) in supabase.auth.authStateChanges {
                 if evento == .passwordRecovery { recuperandoSenha = true }
                 if evento == .signedOut { recuperandoSenha = false }
@@ -143,6 +144,7 @@ struct ContentView: View {
                     estado = .deslogado
                 }
             }
+            await revogacao
         }
         // A paleta inteira é escura — sem isso o texto segue o esquema claro/escuro
         // do sistema e fica ilegível sobre a aurora.
@@ -167,7 +169,11 @@ private struct DiarioRootView: View {
     var body: some View {
         ZStack {
             AuroraFundo(diario: diario)
+            #if os(macOS)
+            PainelView(user: user, diario: diario)
+            #else
             TelefoneView(user: user, diario: diario)
+            #endif
         }
         .task {
             await diario.iniciarSync()
@@ -189,7 +195,9 @@ private struct AuroraFundo: View {
     var body: some View { Aurora(ativa: diario.ativa != nil) }
 }
 
-private enum FormPacienteAlvo: Identifiable {
+// Não é `private`: o PainelView do Mac (outro arquivo) reusa o mesmo tipo para o
+// sheet de paciente novo/edição, em vez de duplicar o enum.
+enum FormPacienteAlvo: Identifiable {
     case novo
     case existente(Paciente)
 
@@ -289,7 +297,9 @@ private struct TelefoneView: View {
                     }
                 }
                 .tint(diario.ativa != nil ? Color(hex: 0xff453a) : Color(hex: 0x8b7cfc))
+                #if os(iOS)
                 .tabBarMinimizeBehavior(.onScrollDown)
+                #endif
             }
         }
     }

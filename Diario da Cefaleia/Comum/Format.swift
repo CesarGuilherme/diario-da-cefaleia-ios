@@ -68,6 +68,27 @@ nonisolated func fmtDecorrido(_ ms: Double) -> String {
     return "\(s / 60):\(String(format: "%02d", s % 60))"
 }
 
+/// O que o VoiceOver fala no cronômetro. Mesma precisão de `fmtDecorrido`:
+/// abaixo de 1h entra o segundo; a partir de 1h, só hora e minuto.
+nonisolated func rotuloDecorrido(_ ms: Double) -> String {
+    let s = Int(max(0, ms) / 1000)
+    if s >= 3600 {
+        let h = s / 3600
+        let m = (s % 3600) / 60
+        if m == 0 { return unidadeTempo(h, "hora", "horas") }
+        return "\(unidadeTempo(h, "hora", "horas")) e \(unidadeTempo(m, "minuto", "minutos"))"
+    }
+    let m = s / 60
+    let seg = s % 60
+    if m == 0 { return unidadeTempo(seg, "segundo", "segundos") }
+    if seg == 0 { return unidadeTempo(m, "minuto", "minutos") }
+    return "\(unidadeTempo(m, "minuto", "minutos")) e \(unidadeTempo(seg, "segundo", "segundos"))"
+}
+
+nonisolated private func unidadeTempo(_ n: Int, _ um: String, _ varios: String) -> String {
+    "\(n) \(n == 1 ? um : varios)"
+}
+
 /// "ago/25" — mês + ano, porque o gráfico mensal atravessa a virada do ano.
 nonisolated func fmtMes(_ d: Date) -> String {
     "\(mesAbrev(d))/\(String(format: "%02d", calendarioBR.component(.year, from: d) % 100))"

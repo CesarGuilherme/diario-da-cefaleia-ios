@@ -4,10 +4,33 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>Diario da Cefaleia.xcscheme_^#shared#^_</key>
+		<key>Diario da Cefaleia Mac.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>Diario da Cefaleia.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>DB01C32E306BF50D0032E74A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>DB4F6BE9302B6D590014AC08</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>DB5BBF74302C9B02006F0DEA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

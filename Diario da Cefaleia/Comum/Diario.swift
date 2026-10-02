@@ -103,7 +103,7 @@ final class Diario {
             pacientes = dados
         } catch {
             guard !(error is CancellationError) else { return }
-            erro = error.localizedDescription
+            erro = mensagemErro(error, senao: "Não foi possível carregar. Tente de novo.")
         }
     }
 
@@ -137,7 +137,7 @@ final class Diario {
             crises = dados
         } catch {
             guard !(error is CancellationError), pid == paciente?.id else { return }
-            erro = error.localizedDescription
+            erro = mensagemErro(error, senao: "Não foi possível carregar. Tente de novo.")
         }
         carregandoCrises = false
     }
@@ -152,7 +152,7 @@ final class Diario {
             escolher(novo.id)
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error)
             return false
         }
     }
@@ -176,7 +176,7 @@ final class Diario {
             pacientes = dados
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error)
             return false
         }
     }
@@ -191,7 +191,7 @@ final class Diario {
             if let idx = pacientes.firstIndex(where: { $0.id == id }) { pacientes[idx] = atualizado }
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error)
             return false
         }
     }
@@ -207,7 +207,7 @@ final class Diario {
             crises.insert(nova, at: 0)
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error)
             return false
         }
     }
@@ -221,7 +221,7 @@ final class Diario {
             if let idx = crises.firstIndex(where: { $0.id == id }) { crises[idx] = atualizada }
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error)
             return false
         }
     }
@@ -238,7 +238,7 @@ final class Diario {
             crises.removeAll { $0.id == id }
             return true
         } catch {
-            erro = error.localizedDescription
+            erro = mensagemErro(error, senao: "Não foi possível apagar. Tente de novo.")
             return false
         }
     }
